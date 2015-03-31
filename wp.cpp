@@ -5,6 +5,7 @@
 #include <complex>
 #include <cstddef>
 #include <iostream>
+#include <tuple>
 #include <type_traits>
 #include <utility>
 
@@ -265,6 +266,29 @@ class w_elliptic
             m_conv_radius = *std::min_element(candidates.begin(),candidates.end());
 // std::cout << "m_conv_radius:" << m_conv_radius << '\n';
         }
+        // Duplication formula for P.
+        template <typename U, typename V>
+        static U duplicate_P(const U &Px, const V &g2, const V &g2_2, const V &g3)
+        {
+            U P2(Px*Px), P3 = (P2*Px), num(V(6)*P2 - g2_2);
+            num *= num;
+            return V(-2)*Px + num / (V(4)*(V(4)*P3-g2*Px-g3));
+        }
+        // Duplication formula for Pprime.
+        template <typename U, typename V>
+        static std::tuple<U,U> duplicate_Pprime(const U &Ppx, const U &Px, const V &g2, const V &g2_2, const V &g3)
+        {
+            U Pp2(Ppx*Ppx), Pp3(Pp2*Ppx), Pp4(Pp2*Pp2), Ppp(V(6)*Px*Px-g2_2), Ppp3(Ppp*Ppp*Ppp);
+            return std::make_tuple((V(-4)*Pp4+V(12)*Px*Pp2*Ppp-Ppp3)/(V(4)*Pp3),duplicate_P(Px,g2,g2_2,g3));
+        }
+        // Duplication formula for zeta.
+        template <typename U, typename V>
+        static std::tuple<U,U,U> duplicate_zeta(const U &zetax, const U &Ppx, const U &Px, const V &g2, const V &g2_2, const V &g3)
+        {
+            U Ppp(V(6)*Px*Px-g2_2);
+            auto dup_Pp = duplicate_Pprime(Ppx,Px,g2,g2_2,g3);
+            return std::make_tuple(U(2)*zetax+Ppp/(U(2)*Ppx),std::get<0>(dup_Pp),std::get<1>(dup_Pp));
+        }
     public:
         // TODO:
         // - finiteness checks,
@@ -279,9 +303,13 @@ class w_elliptic
             // Computation of the periods.
             setup_periods();
         }
-        const std::array<real_type,2> &get_invariants() const
+        const std::array<real_type,2> &invariants() const
         {
             return m_invariants;
+        }
+        const std::array<complex_type,2> &periods() const
+        {
+            return m_periods;
         }
         friend std::ostream &operator<<(std::ostream &os, const w_elliptic &w)
         {
@@ -293,7 +321,6 @@ class w_elliptic
         }
         real_type P(const real_type &x) const
         {
-// std::cout << "x=" << x << '\n';
             const real_type g2 = m_invariants[0], g3 = m_invariants[1], g2_2 = g2/real_type(2);
             real_type xred(x);
             // P is an even function.
@@ -301,38 +328,83 @@ class w_elliptic
                 xred = -xred;
             }
             // Reduction of x to the fundamental cell.
-            xred = std::fmod(x,m_periods[0].real());
+            xred = std::fmod(xred,m_periods[0].real());
             // Further reduction.
-//             if (xred > m_periods[0].real() / real_type(2)) {
-//                 xred = m_periods[0].real() - xred;
-//             }
-// std::cout << "xred=" << xred << '\n';
+            if (xred > m_periods[0].real() / real_type(2)) {
+                xred = m_periods[0].real() - xred;
+            }
             // Now we need to reduce xred to the radius of convergence of the Laurent series.
             std::size_t n = 0u;
             while (xred >= m_conv_radius / real_type(8)) {
                 xred /= real_type(2);
                 ++n;
             }
-// std::cout << "n=" << n << '\n';
-// std::cout << "xred=" << xred << '\n';
             real_type retval(P_laurent(xred));
-// std::cout << "retval_laurent=" << retval << '\n';
             for (std::size_t i = 0u; i < n; ++i) {
-                real_type P2 = retval*retval;
-                real_type P3 = P2 * retval;
-                real_type num = real_type(6)*P2 - g2_2;
-                num *= num;
-                retval = real_type(-2)*retval + num / (real_type(4)*(real_type(4)*P3-g2*retval-g3));
+                retval = duplicate_P(retval,g2,g2_2,g3);
             }
             return retval;
+        }
+        real_type Pprime(const real_type &x) const
+        {
+            const real_type g2 = m_invariants[0], g3 = m_invariants[1], g2_2 = g2/real_type(2);
+            real_type xred(x);
+            // Pprime is an odd function.
+            bool negate = false;
+            if (xred < real_type(0)) {
+                xred = -xred;
+                negate = !negate;
+            }
+std::cout << "xred:" << xred << '\n';
+            // Reduction of x to the fundamental cell.
+            xred = std::fmod(xred,m_periods[0].real());
+            // Further reduction.
+            if (xred > m_periods[0].real() / real_type(2)) {
+                xred = m_periods[0].real() - xred;
+                negate = !negate;
+            }
+            // Now we need to reduce xred to the radius of convergence of the Laurent series.
+            std::size_t n = 0u;
+            while (xred >= m_conv_radius / real_type(8)) {
+                xred /= real_type(2);
+                ++n;
+            }
+            auto retval = std::make_tuple(Pprime_laurent(xred),P_laurent(xred));
+            for (std::size_t i = 0u; i < n; ++i) {
+                retval = duplicate_Pprime(std::get<0>(retval),std::get<1>(retval),g2,g2_2,g3);
+            }
+            if (negate) {
+                return -std::get<0>(retval);
+            }
+            return std::get<0>(retval);
+        }
+        real_type zeta_dup(const real_type &x) const
+        {
+            const real_type g2 = m_invariants[0], g3 = m_invariants[1], g2_2 = g2/real_type(2);
+            real_type xred(x);
+            // We need to reduce x to the radius of convergence of the Laurent series.
+            std::size_t n = 0u;
+            while (xred >= m_conv_radius / real_type(8)) {
+                xred /= real_type(2);
+                ++n;
+            }
+            auto retval = std::make_tuple(zeta_laurent(xred),Pprime_laurent(xred),P_laurent(xred));
+            for (std::size_t i = 0u; i < n; ++i) {
+                retval = duplicate_zeta(std::get<0>(retval),std::get<1>(retval),std::get<2>(retval),g2,g2_2,g3);
+            }
+            return std::get<0>(retval);
         }
         template <typename U>
         U P_laurent(const U &z) const
         {
             U z2(z*z), tmp(z2);
             U retval = U(1) / z2;
-            std::size_t i = 2u;
+            std::size_t i = 2u, miter = max_iter + 2u;
             while (true) {
+                if (i == miter) {
+                    std::cout << "WARNING max_iter reached\n";
+                    break;
+                }
                 U add(ck(i) * tmp);
                 retval += add;
                 if (std::abs(add/retval) <= tolerance<U>()) {
@@ -341,7 +413,48 @@ class w_elliptic
                 tmp *= z2;
                 ++i;
             }
-// std::cout << "niter:" << i - 2u << '\n';
+            return retval;
+        }
+        template <typename U>
+        U Pprime_laurent(const U &z) const
+        {
+            U z2(z*z), tmp(z);
+            U retval = U(-2) / (z2*z);
+            std::size_t i = 2u, miter = max_iter + 2u;
+            while (true) {
+                if (i == miter) {
+                    std::cout << "WARNING max_iter reached\n";
+                    break;
+                }
+                U add((U(2)*U(i) - U(2))*ck(i) * tmp);
+                retval += add;
+                if (std::abs(add/retval) <= tolerance<U>()) {
+                    break;
+                }
+                tmp *= z2;
+                ++i;
+            }
+            return retval;
+        }
+        template <typename U>
+        U zeta_laurent(const U &z) const
+        {
+            U z2(z*z), tmp(z*z2);
+            U retval = U(1) / (z);
+            std::size_t i = 2u, miter = max_iter + 2u;
+            while (true) {
+                if (i == miter) {
+                    std::cout << "WARNING max_iter reached\n";
+                    break;
+                }
+                U sub(ck(i) * tmp/(U(2)*U(i) - U(1)));
+                retval -= sub;
+                if (std::abs(sub/retval) <= tolerance<U>()) {
+                    break;
+                }
+                tmp *= z2;
+                ++i;
+            }
             return retval;
         }
     private:
@@ -369,10 +482,12 @@ int main()
 //     std::cout << w_elliptic<long double>(1E-8,-3E-8) << '\n';
 //     std::cout << w_elliptic<long double>(1E15,-3E18) << '\n';
 //     std::cout << we.P(.3) << '\n';
-    double retval = 0.;
-    boost::timer::auto_cpu_timer t;
-    for (int i = 0; i < 100000; ++i) {
-        retval += we.P(2.+i/100000.);
-    }
-    std::cout << retval << '\n';
+//     double retval = 0.;
+//     boost::timer::auto_cpu_timer t;
+//     for (int i = 0; i < 1000; ++i) {
+//         retval += we.Pprime(2.+i/1000.);
+//     }
+//     std::cout << retval << '\n';
+    std::cout << we.zeta_dup(2.) << '\n';
+
 }
