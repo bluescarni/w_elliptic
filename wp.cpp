@@ -107,6 +107,15 @@ class w_elliptic
         {
             return m_ck_laurent[k - 2u];
         }
+        // Same, for the ln sigma expansion.
+        const real_type &ls_c(const std::size_t &k) const
+        {
+            return m_ln_sigma_c[k - 1u];
+        }
+        real_type &ls_c(const std::size_t &k)
+        {
+            return m_ln_sigma_c[k - 1u];
+        }
         // Setup the roots of the Weierstrass cubic. See:
         // http://en.wikipedia.org/wiki/Cubic_function
         void setup_roots(const real_type &a, const real_type &c, const real_type &d)
@@ -264,7 +273,6 @@ class w_elliptic
             // See note at the end of A+S 18.5.
             std::array<real_type,4> candidates = {{std::abs(p1),std::abs(p2),std::abs(p1+p2),std::abs(p1-p2)}};
             m_conv_radius = *std::min_element(candidates.begin(),candidates.end());
-// std::cout << "m_conv_radius:" << m_conv_radius << '\n';
         }
         // Duplication formula for P.
         template <typename U, typename V>
@@ -289,6 +297,23 @@ class w_elliptic
             auto dup_Pp = duplicate_Pprime(Ppx,Px,g2,g2_2,g3);
             return std::make_tuple(U(2)*zetax+Ppp/(U(2)*Ppx),std::get<0>(dup_Pp),std::get<1>(dup_Pp));
         }
+        // Setup the q constant and related quantities.
+        void setup_q()
+        {
+            m_q = std::pow(complex_type(-1,0),m_periods[1]/m_periods[0]);
+            // q is either pure real or pure imaginary.
+            if (m_delta >= real_type(0)) {
+                m_q = complex_type(m_q.real(),real_type(0));
+            } else {
+                m_q = complex_type(real_type(0),m_q.imag());
+            }
+            // Coefficients of the series expansion for ln sigma.
+            real_type q2((m_q * m_q).real()), tmp(q2);
+            for (std::size_t i = 1u; i < max_iter + 1u; ++i) {
+                ls_c(i) = tmp/(real_type(i) * (real_type(1) - tmp));
+                tmp *= q2;
+            }
+        }
     public:
         // TODO:
         // - finiteness checks,
@@ -302,6 +327,10 @@ class w_elliptic
             setup_roots(real_type(4),-g2,-g3);
             // Computation of the periods.
             setup_periods();
+            // Calculate the eta constant.
+            m_eta = zeta_dup(m_periods[0]/real_type(2)).real();
+            // Setup q and related.
+            setup_q();
         }
         const std::array<real_type,2> &invariants() const
         {
@@ -316,7 +345,9 @@ class w_elliptic
             os << "Invariants: [" << w.m_invariants[0] << ',' << w.m_invariants[1] << "]\n";
             os << "Delta: " << w.m_delta << '\n';
             os << "Roots: [" << w.m_roots[0] << ',' << w.m_roots[1] << ',' << w.m_roots[2] << "]\n";
-            os << "Periods: [" << w.m_periods[0] << ',' << w.m_periods[1] << ']';
+            os << "Periods: [" << w.m_periods[0] << ',' << w.m_periods[1] << "]\n";
+            os << "eta: " << w.m_eta << '\n';
+            os << "q: " << w.m_q << '\n';
             return os;
         }
         real_type P(const real_type &x) const
@@ -345,6 +376,36 @@ class w_elliptic
             }
             return retval;
         }
+        complex_type P(const complex_type &c) const
+        {
+            const real_type g2 = m_invariants[0], g3 = m_invariants[1], g2_2 = g2/real_type(2);
+            // Reduction of x to the fundamental cell.
+            auto ab = reduce_to_fc(c);
+            real_type alpha = std::get<0>(ab) - std::floor(std::get<0>(ab)),
+                beta = std::get<1>(ab) - std::floor(std::get<1>(ab));
+// std::cout << "ab=" << alpha << ',' << beta << '\n';
+            complex_type cred = m_periods[0] * alpha + m_periods[1] * beta;
+// std::cout << "cred=" << cred << '\n';
+            // Attempt a further reduction.
+            complex_type new_cred = -cred + m_periods[0] + m_periods[1];
+// std::cout << "new_cred:" << new_cred << '\n';
+            if (std::abs(new_cred) < std::abs(cred)) {
+// std::cout << "creeeeed\n";
+                cred = new_cred;
+            }
+            // Now we need to reduce cred to the radius of convergence of the Laurent series.
+            std::size_t n = 0u;
+            while (std::abs(cred) >= m_conv_radius / real_type(8)) {
+                cred /= real_type(2);
+                ++n;
+            }
+// std::cout << "n=" << n << '\n';
+            complex_type retval(P_laurent(cred));
+            for (std::size_t i = 0u; i < n; ++i) {
+                retval = duplicate_P(retval,g2,g2_2,g3);
+            }
+            return retval;
+        }
         real_type Pprime(const real_type &x) const
         {
             const real_type g2 = m_invariants[0], g3 = m_invariants[1], g2_2 = g2/real_type(2);
@@ -355,7 +416,6 @@ class w_elliptic
                 xred = -xred;
                 negate = !negate;
             }
-std::cout << "xred:" << xred << '\n';
             // Reduction of x to the fundamental cell.
             xred = std::fmod(xred,m_periods[0].real());
             // Further reduction.
@@ -378,17 +438,63 @@ std::cout << "xred:" << xred << '\n';
             }
             return std::get<0>(retval);
         }
-        real_type zeta_dup(const real_type &x) const
+        real_type zeta(const real_type &x) const
         {
             const real_type g2 = m_invariants[0], g3 = m_invariants[1], g2_2 = g2/real_type(2);
             real_type xred(x);
-            // We need to reduce x to the radius of convergence of the Laurent series.
+            // zeta is an odd function.
+            bool negate = false;
+            if (xred < real_type(0)) {
+                xred = -xred;
+                negate = true;
+            }
+            // Reduction to the fundamental cell.
+            real_type nf(0);
+            if (xred > m_periods[0].real()) {
+                nf = std::trunc(xred / m_periods[0].real());
+                xred -= m_periods[0].real() * nf;
+            }
+            bool negate2 = false;
+            // Further reduction.
+            real_type extra_red(0);
+            if (xred > m_periods[0].real() / real_type(2)) {
+                xred = m_periods[0].real() - xred;
+                negate2 = true;
+                extra_red = m_eta*m_periods[0].real();
+            }
+            // Now we need to reduce xred to the radius of convergence of the Laurent series.
             std::size_t n = 0u;
             while (xred >= m_conv_radius / real_type(8)) {
                 xred /= real_type(2);
                 ++n;
             }
+            // Laurent iteration.
             auto retval = std::make_tuple(zeta_laurent(xred),Pprime_laurent(xred),P_laurent(xred));
+            for (std::size_t i = 0u; i < n; ++i) {
+                retval = duplicate_zeta(std::get<0>(retval),std::get<1>(retval),std::get<2>(retval),g2,g2_2,g3);
+            }
+            auto z_retval = std::get<0>(retval);
+            if (negate2) {
+                z_retval = -z_retval + real_type(2)*m_eta;
+            }
+            z_retval += real_type(2)*nf*m_eta;
+            if (negate) {
+                return -z_retval;
+            }
+            return z_retval;
+        }
+        complex_type zeta_dup(const complex_type &z) const
+        {
+            // TODO assert in fundamental cell?
+            const real_type g2 = m_invariants[0], g3 = m_invariants[1], g2_2 = g2/real_type(2);
+            complex_type zred(z);
+            // We need to reduce x to the radius of convergence of the Laurent series.
+            std::size_t n = 0u;
+            while (std::abs(zred) >= m_conv_radius / real_type(8)) {
+                zred /= real_type(2);
+                ++n;
+            }
+            auto retval = std::make_tuple(zeta_laurent(zred),Pprime_laurent(zred),P_laurent(zred));
             for (std::size_t i = 0u; i < n; ++i) {
                 retval = duplicate_zeta(std::get<0>(retval),std::get<1>(retval),std::get<2>(retval),g2,g2_2,g3);
             }
@@ -397,6 +503,7 @@ std::cout << "xred:" << xred << '\n';
         template <typename U>
         U P_laurent(const U &z) const
         {
+            // TODO here and in other laurent assert convergence radius.
             U z2(z*z), tmp(z2);
             U retval = U(1) / z2;
             std::size_t i = 2u, miter = max_iter + 2u;
@@ -413,6 +520,7 @@ std::cout << "xred:" << xred << '\n';
                 tmp *= z2;
                 ++i;
             }
+// std::cout << "i=" << i - 2u << '\n';
             return retval;
         }
         template <typename U>
@@ -457,6 +565,77 @@ std::cout << "xred:" << xred << '\n';
             }
             return retval;
         }
+        std::tuple<real_type,real_type> reduce_to_fc(const complex_type &c) const
+        {
+            // TODO assert det is not zero.
+            real_type re(c.real()), im(c.imag());
+            real_type p1r(m_periods[0].real()), p1i(m_periods[0].imag()), p2r(m_periods[1].real()), p2i(m_periods[1].imag());
+            real_type det(p1r*p2i-p2r*p1i);
+            real_type alpha((p2i*re-p2r*im)/det), beta((-p1i*re+p1r*im)/det);
+            return std::make_tuple(std::move(alpha),std::move(beta));
+        }
+        complex_type ln_sigma(const complex_type &c) const
+        {
+            const real_type pi = boost::math::constants::pi<real_type>();
+            complex_type arg = pi * c / m_periods[0].real(), S = std::sin(arg), C = std::cos(arg), Sn(real_type(0)), Cn(real_type(1));
+            complex_type retval = std::log(m_periods[0].real()/pi) + m_eta  / m_periods[0].real() * (c * c) + std::log(S);
+            std::size_t i = 1u, miter = max_iter + 1u;
+            complex_type tmp_s, tmp_c, mul;
+            while (true) {
+                if (i == miter) {
+                    std::cout << "WARNING max_iter reached\n";
+                    break;
+                }
+                tmp_s = Sn*C+Cn*S;
+                tmp_c = Cn*C-Sn*S;
+                Sn = tmp_s;
+                Cn = tmp_c;
+                mul = Sn;
+                mul *= mul;
+                mul *= real_type(4);
+                complex_type add = ls_c(i) * mul;
+                retval += add;
+                if (std::abs(add/retval) <= tolerance<complex_type>()) {
+                    break;
+                }
+                ++i;
+            }
+            return retval;
+        }
+        real_type ln_sigma_real(const complex_type &c) const
+        {
+            const real_type pi = boost::math::constants::pi<real_type>();
+            complex_type arg = pi * c / m_periods[0].real();
+            const real_type a = arg.real(), b = arg.imag();
+            real_type retval = std::log(m_periods[0].real()/pi) + m_eta * (c.real()*c.real()-c.imag()*c.imag()) / m_periods[0].real()
+                + std::log(std::sin(pi*c/m_periods[0].real())).real();
+            std::size_t i = 1u, miter = max_iter + 1u;
+            real_type C = std::cos(a), S = std::sin(a), Cn(1), Sn(0), Ch = std::cosh(b), Sh = std::sinh(b), Chn(1), Shn(0);
+            real_type tmp_s, tmp_c, tmp_sh, tmp_ch, mul;
+            while (true) {
+                if (i == miter) {
+                    std::cout << "WARNING max_iter reached\n";
+                    break;
+                }
+                tmp_s = Sn*C+Cn*S;
+                tmp_c = Cn*C-Sn*S;
+                tmp_sh = Shn*Ch+Chn*Sh;
+                tmp_ch = Chn*Ch+Shn*Sh;
+                Sn = tmp_s;
+                Cn = tmp_c;
+                Shn = tmp_sh;
+                Chn = tmp_ch;
+                mul = Sn*Sn*Chn*Chn-Cn*Cn*Shn*Shn;
+                mul *= real_type(4);
+                real_type add = ls_c(i) * mul;
+                retval += add;
+                if (std::abs(add/retval) <= tolerance<real_type>()) {
+                    break;
+                }
+                ++i;
+            }
+            return retval;
+        }
     private:
         std::array<real_type,2>         m_invariants;
         real_type                       m_delta;
@@ -464,6 +643,9 @@ std::cout << "xred:" << xred << '\n';
         std::array<real_type,max_iter>  m_ck_laurent;
         std::array<complex_type,2>      m_periods;
         real_type                       m_conv_radius;
+        real_type                       m_eta;
+        complex_type                    m_q;
+        std::array<real_type,max_iter>  m_ln_sigma_c;
 };
 
 }
@@ -472,9 +654,9 @@ using namespace weierstrass_elliptic;
 
 int main()
 {
-    std::cout << std::setprecision(16) << '\n';
+    std::cout << std::setprecision(18) << '\n';
     w_elliptic<double> we(.3,.4);
-//     std::cout << we << '\n';
+    std::cout << we << '\n';
 //     std::cout << w_elliptic<long double>(2.,.1) << '\n';
 //     std::cout << w_elliptic<long double>(2.,-.1) << '\n';
 //     std::cout << w_elliptic<long double>(.01,-.1) << '\n';
@@ -482,12 +664,21 @@ int main()
 //     std::cout << w_elliptic<long double>(1E-8,-3E-8) << '\n';
 //     std::cout << w_elliptic<long double>(1E15,-3E18) << '\n';
 //     std::cout << we.P(.3) << '\n';
-//     double retval = 0.;
-//     boost::timer::auto_cpu_timer t;
-//     for (int i = 0; i < 1000; ++i) {
-//         retval += we.Pprime(2.+i/1000.);
-//     }
-//     std::cout << retval << '\n';
-    std::cout << we.zeta_dup(2.) << '\n';
-
+//     we.P(std::complex<double>(3,3));
+//     return 0;
+//     std::cout << we.ln_sigma_real(.1) << '\n';
+//     return 0;
+    {
+    std::complex<double> retval = 0.;
+    boost::timer::auto_cpu_timer t;
+    for (int i = 0; i < 1000000; ++i) {
+        retval += we.ln_sigma_real(std::complex<double>(.1+i/2000000.,.1+i/2000000.));
+    }
+    std::cout << retval << '\n';
+    }
+    std::cout << we.zeta_dup(std::complex<double>{.1,.5}) << '\n';
+    auto t = we.reduce_to_fc(std::complex<double>{34.,-78.});
+    std::cout << std::get<0>(t) << '\n';
+    std::cout << std::get<1>(t) << '\n';
+    std::cout << we.zeta(3.) << '\n';
 }
