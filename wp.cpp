@@ -610,6 +610,7 @@ class w_elliptic
             real_type retval = std::log(m_periods[0].real()/pi) + m_eta * (c.real()*c.real()-c.imag()*c.imag()) / m_periods[0].real()
                 + std::log(std::sin(pi*c/m_periods[0].real())).real();
             std::size_t i = 1u, miter = max_iter + 1u;
+            // NOTE: here the sincos function might be useful.
             real_type C = std::cos(a), S = std::sin(a), Cn(1), Sn(0), Ch = std::cosh(b), Sh = std::sinh(b), Chn(1), Shn(0);
             real_type tmp_s, tmp_c, tmp_sh, tmp_ch, mul;
             while (true) {
@@ -635,6 +636,119 @@ class w_elliptic
                 ++i;
             }
             return retval;
+        }
+        complex_type Pinv(const complex_type &c) const
+        {
+            auto g2 = m_invariants[0], g3 = m_invariants[1];
+            complex_type e1, e2, e3;
+            e1 = m_roots[0];
+            e2 = m_roots[1];
+            e3 = m_roots[2];
+            bool negative_g3 = false;
+            if (g3 < real_type(0)) {
+                e1 = -m_roots[2];
+                e2 = -m_roots[1];
+                e3 = -m_roots[0];
+                g3 = -g3;
+                negative_g3 = true;
+            }
+            // TODO: negative delta, negative g3.
+            if (m_delta >= real_type(0)) {
+//                 real_type k = std::sqrt(((e2-e3)/(e1-e3)).real()), alpha = std::asin(k);
+//                 complex_type phi(std::asin(std::sqrt((e1-e3)/(c-e3))));
+// std::cout << "phi,alpha:" << phi << ',' << alpha << '\n';
+//                 real_type tmp(1);
+//                 std::size_t i = 0u;
+//                 while (true) {
+//                     if (std::abs(alpha) <= tolerance<real_type>()) {
+//                         break;
+//                     }
+//                     auto new_phi = phi + std::atan(std::cos(alpha)*std::tan(phi));
+//                     if (new_phi.real() < phi.real()) {
+//                         new_phi += boost::math::constants::pi<real_type>();
+//                     }
+//                     //phi += std::atan(std::cos(alpha)*std::tan(phi));
+//                     phi = new_phi;
+// std::cout << "new phi: " << phi << '\n';
+//                     alpha = std::asin(real_type(2)/(real_type(1)+std::cos(alpha))-real_type(1));
+// std::cout << "new alpha: " << alpha << '\n';
+//                     tmp *= (real_type(1)+std::sin(alpha))/real_type(2);
+// std::cout << "new tmp: " << tmp << '\n';
+//                     ++i;
+//                 }
+// std::cout << "i=" << i << '\n';
+// std::cout << "ell=" << phi * tmp << '\n';
+//                 return (phi * tmp) / std::sqrt((e1-e3).real());
+
+
+//                 real_type k = std::sqrt(((e2-e3)/(e1-e3)).real()), alpha = std::asin(k);
+//                 complex_type phi(std::asin(std::sqrt((e1-e3)/(c-e3))));
+//                 real_type tmp(1);
+//                 std::size_t i = 0u;
+//                 while (true) {
+//                     if (std::abs(alpha - boost::math::constants::pi<real_type>()/real_type(2)) <= tolerance<real_type>()) {
+//                         break;
+//                     }
+//                     phi = (std::asin(std::sin(alpha)*std::sin(phi)) + phi)/real_type(2);
+//                     alpha = std::acos(real_type(2)/(real_type(1)+std::sin(alpha))-real_type(1));
+// std::cout << "new phi: " << phi << '\n';
+// std::cout << "new alpha: " << alpha << '\n';
+//                     tmp *= real_type(2)/(real_type(1)+std::sin(alpha));
+// std::cout << "new tmp: " << tmp << '\n';
+//                     ++i;
+//                 }
+// std::cout << "i=" << i << '\n';
+//                 complex_type ell = std::log(real_type(1)/std::cos(phi)+std::tan(phi)) * tmp;
+// std::cout << "ell=" << ell << '\n';
+//                 return (ell) / std::sqrt((e1-e3).real());
+
+
+                real_type k = std::sqrt(((e2-e3)/(e1-e3)).real());
+                complex_type phi(std::asin(std::sqrt((e1-e3)/(c-e3))));
+                real_type tmp(1);
+                std::size_t i = 0u;
+                while (true) {
+                    if (std::abs(k - real_type(1)) <= tolerance<real_type>()) {
+                        break;
+                    }
+                    phi = (std::asin(k*std::sin(phi)) + phi)/real_type(2);
+                    tmp *= real_type(2) / (real_type(1) + k);
+                    k = real_type(2) * std::sqrt(k)  /(real_type(1) + k);
+std::cout << "new phi: " << phi << '\n';
+std::cout << "new tmp: " << tmp << '\n';
+                    ++i;
+                }
+std::cout << "i=" << i << '\n';
+                complex_type ell = std::log(real_type(1)/std::cos(phi)+std::tan(phi)) * tmp;
+std::cout << "ell=" << ell << '\n';
+                return (ell) / std::sqrt((e1-e3).real());
+
+
+//                 real_type k = std::sqrt(((e2-e3)/(e1-e3)).real());
+//                 complex_type phi(std::asin(std::sqrt((e1-e3)/(c-e3))));
+//                 real_type k = 0.9;
+//                 complex_type phi(0.69813170079773179);
+//                 real_type tmp(1);
+//                 std::size_t i = 0u;
+//                 while (true) {
+//                     if (std::abs(k) <= tolerance<real_type>()) {
+//                         break;
+//                     }
+//                     phi += std::atan(std::sqrt(real_type(1)-k*k)*std::tan(phi));
+//                     k = (real_type(1)-std::sqrt(real_type(1) - k*k))/(real_type(1)+std::sqrt(real_type(1) - k*k));
+// std::cout << "new k: " << k << '\n';
+//                     tmp *= (real_type(1)+k)/real_type(2);
+// std::cout << "new phi: " << phi << '\n';
+// std::cout << "new tmp: " << tmp << '\n';
+//                     ++i;
+//                 }
+// std::cout << "i=" << i << '\n';
+//                 complex_type ell = tmp * phi;
+// std::cout << "ell=" << ell << '\n';
+//                 return (ell) / std::sqrt((e1-e3).real());
+
+            }
+            return 0.;
         }
     private:
         std::array<real_type,2>         m_invariants;
@@ -681,4 +795,5 @@ int main()
     std::cout << std::get<0>(t) << '\n';
     std::cout << std::get<1>(t) << '\n';
     std::cout << we.zeta(3.) << '\n';
+    std::cout << "Inv:" << w_elliptic<double>(1,.1).Pinv(4) << '\n';
 }
