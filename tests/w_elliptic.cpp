@@ -24,8 +24,12 @@
 #include <boost/test/unit_test.hpp>
 
 #include <array>
+#include <boost/algorithm/string/classification.hpp>
+#include <boost/algorithm/string/split.hpp>
 #include <boost/mpl/for_each.hpp>
 #include <boost/mpl/vector.hpp>
+#include <fstream>
+#include <stdexcept>
 #include <string>
 #include <typeinfo>
 #include <vector>
@@ -33,6 +37,7 @@
 #include <cmath>
 #include <complex>
 
+// TODO uniform the usage of these functions.
 static inline void real_from_str(float &x, const std::string &s)
 {
     try {
@@ -74,13 +79,32 @@ static inline void complex_from_str(std::complex<long double> &c, const std::str
     c = std::complex<long double>(R,I);
 }
 
+// Read a data file line by line, each line consisting of a set of comma-separated records.
+static std::vector<std::vector<std::string>> read_data(const std::string &filename)
+{
+    std::vector<std::vector<std::string>> retval;
+    std::ifstream infile(filename);
+    std::string line;
+    while (std::getline(infile, line)) {
+        // Split the string.
+        std::vector<std::string> tmp;
+        boost::algorithm::split(tmp,line,boost::algorithm::is_any_of(","));
+        retval.push_back(std::move(tmp));
+    }
+    // If the file was not found,
+    if (retval.empty()) {
+        throw std::runtime_error("Loading of test data failed: make sure to run the test from the build/ directory.");
+    }
+    return retval;
+}
+
 using namespace w_elliptic;
 
 typedef boost::mpl::vector<float,double,long double> real_types;
 
 using size_type = std::vector<std::vector<std::string>>::size_type;
 
-extern std::vector<std::vector<std::string>> test_01_data;
+static std::vector<std::vector<std::string>> test_01_data = read_data("../tests/test_01_data.txt");
 
 struct tester_01
 {

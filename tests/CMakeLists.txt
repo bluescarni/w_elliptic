@@ -20,4 +20,4 @@ macro(ADD_W_ELLIPTIC_PERFORMANCE_TESTCASE arg1)
     endif()
 endmacro()
 
-ADD_W_ELLIPTIC_TESTCASE(w_elliptic test_01_data.cpp)
+ADD_W_ELLIPTIC_TESTCASE(w_elliptic)
