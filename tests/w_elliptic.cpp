@@ -98,13 +98,13 @@ static std::vector<std::vector<std::string>> read_data(const std::string &filena
     return retval;
 }
 
-using namespace w_elliptic;
+static std::vector<std::vector<std::string>> test_01_data = read_data("../tests/test_01_data.txt");
 
 typedef boost::mpl::vector<float,double,long double> real_types;
 
 using size_type = std::vector<std::vector<std::string>>::size_type;
 
-static std::vector<std::vector<std::string>> test_01_data = read_data("../tests/test_01_data.txt");
+using namespace w_elliptic;
 
 struct tester_01
 {
