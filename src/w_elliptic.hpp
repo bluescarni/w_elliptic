@@ -308,8 +308,11 @@ class we
         template <typename U, typename V>
         static std::tuple<U,U> duplicate_Pprime(const U &Ppx, const U &Px, const V &g2, const V &g2_2, const V &g3)
         {
-            U Pp2(Ppx*Ppx), Pp3(Pp2*Ppx), Pp4(Pp2*Pp2), Ppp(V(6)*Px*Px-g2_2), Ppp3(Ppp*Ppp*Ppp);
-            return std::make_tuple((V(-4)*Pp4+V(12)*Px*Pp2*Ppp-Ppp3)/(V(4)*Pp3),duplicate_P(Px,g2,g2_2,g3));
+            U Ppp(V(6)*Px*Px-g2_2), tmp(Ppp/Ppx);
+            U retval = -Ppx;
+            retval -= (tmp*tmp*tmp)/U(4);
+            retval += (V(3)*Px*Ppp)/Ppx;
+            return std::make_tuple(std::move(retval),duplicate_P(Px,g2,g2_2,g3));
         }
         // Duplication formula for zeta.
         template <typename U, typename V>
@@ -460,6 +463,41 @@ class we
                 ++n;
             }
             auto retval = std::make_tuple(Pprime_laurent(xred),P_laurent(xred));
+            for (std::size_t i = 0u; i < n; ++i) {
+                retval = duplicate_Pprime(std::get<0>(retval),std::get<1>(retval),g2,g2_2,g3);
+            }
+            if (negate) {
+                return -std::get<0>(retval);
+            }
+            return std::get<0>(retval);
+        }
+        complex_type Pprime(const complex_type &c) const
+        {
+            const real_type g2 = m_invariants[0], g3 = m_invariants[1], g2_2 = g2/real_type(2);
+            // Reduction of x to the fundamental cell.
+            auto ab = reduce_to_fc(c);
+            real_type alpha = std::get<0>(ab) - std::floor(std::get<0>(ab)),
+                beta = std::get<1>(ab) - std::floor(std::get<1>(ab));
+// std::cout << "ab=" << alpha << ',' << beta << '\n';
+            complex_type cred = m_periods[0] * alpha + m_periods[1] * beta;
+// std::cout << "cred=" << cred << '\n';
+            // Attempt a further reduction.
+            bool negate = false;
+            complex_type new_cred = -cred + m_periods[0] + m_periods[1];
+// std::cout << "new_cred:" << new_cred << '\n';
+            if (std::abs(new_cred) < std::abs(cred)) {
+// std::cout << "creeeeed\n";
+                negate = true;
+                cred = new_cred;
+            }
+            // Now we need to reduce cred to the radius of convergence of the Laurent series.
+            std::size_t n = 0u;
+            while (std::abs(cred) >= m_conv_radius / real_type(8)) {
+                cred /= real_type(2);
+                ++n;
+            }
+// std::cout << "n=" << n << '\n';
+            auto retval = std::make_tuple(Pprime_laurent(cred),P_laurent(cred));
             for (std::size_t i = 0u; i < n; ++i) {
                 retval = duplicate_Pprime(std::get<0>(retval),std::get<1>(retval),g2,g2_2,g3);
             }

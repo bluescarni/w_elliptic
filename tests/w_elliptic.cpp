@@ -100,6 +100,9 @@ static std::vector<std::vector<std::string>> read_data(const std::string &filena
 
 static std::vector<std::vector<std::string>> test_01_data = read_data("../tests/test_01_data.txt");
 static std::vector<std::vector<std::string>> test_02_data = read_data("../tests/test_02_data.txt");
+static std::vector<std::vector<std::string>> test_03_data = read_data("../tests/test_03_data.txt");
+static std::vector<std::vector<std::string>> test_04_data = read_data("../tests/test_04_data.txt");
+static std::vector<std::vector<std::string>> test_05_data = read_data("../tests/test_05_data.txt");
 
 typedef boost::mpl::vector<float,double,long double> real_types;
 
@@ -179,9 +182,10 @@ struct tester_01
 
 BOOST_AUTO_TEST_CASE(test_01)
 {
-    std::cout << "Testing the computation of roots and periods\n";
-    std::cout << "============================================\n";
+    std::cout << "Testing the computation of roots, periods and eta\n";
+    std::cout << "=================================================\n";
     boost::mpl::for_each<real_types>(tester_01());
+    std::cout << "\n\n\n";
 }
 
 struct tester_02
@@ -216,8 +220,6 @@ struct tester_02
         }
         std::cout << "\tMax P error: " << max_P_err << " @ [g2=" << test_02_data[max_err_idx][0u] << ",g3=" << test_02_data[max_err_idx][1u] << ",x=" << max_err_x << ",P=" << max_err_P << "]\n";
         std::cout << "\tAverage P error: " << acc_P_err / (real_type(test_02_data.size())*100) << '\n';
-//         std::cout << "\tMax period error: " << max_period_err << " @ [g2=" << test_01_data[max_period_err_idx][0u] << ",g3=" << test_01_data[max_period_err_idx][1u] << "]\n";
-//         std::cout << "\tAverage period error: " << acc_period_err / real_type(test_01_data.size()) << '\n';
     }
 };
 
@@ -226,4 +228,138 @@ BOOST_AUTO_TEST_CASE(test_02)
     std::cout << "Testing the computation of real P\n";
     std::cout << "=================================\n";
     boost::mpl::for_each<real_types>(tester_02());
+    std::cout << "\n\n\n";
+}
+
+struct tester_03
+{
+    template <typename RealType>
+    void operator()(const RealType &)
+    {
+        std::cout << "Testing type: " << typeid(RealType).name() << '\n';
+        using real_type = RealType;
+        using complex_type = typename we<real_type>::complex_type;
+        real_type g2, g3, max_P_err = 0, acc_P_err = 0;
+        complex_type c, P, P_comp;
+        size_type max_err_idx = 0;
+        std::string max_err_x, max_err_P;
+        for (size_type i = 0u; i < test_03_data.size(); ++i) {
+            const auto &v = test_03_data[i];
+            // Read the invariant values from mpmath.
+            real_from_str(g2,v[0]);
+            real_from_str(g3,v[1]);
+            // Build the W object.
+            we<real_type> w(g2,g3);
+            for (decltype(v.size()) j = 2u; j < v.size(); j += 4u) {
+                complex_from_str(c,v[j],v[j + 1u]);
+                P = w.P(c);
+                complex_from_str(P_comp,v[j + 2u],v[j + 3u]);
+                if (std::abs((P-P_comp)/P_comp) > max_P_err) {
+                    max_P_err = std::abs((P-P_comp)/P_comp);
+                    max_err_idx = i;
+                    max_err_x = std::string("(") + v[j] + "," + v[j + 1u] + ")";
+                    max_err_P = std::string("(") + v[j + 2u] + "," + v[j + 3u] + ")";
+                }
+                acc_P_err += std::abs((P-P_comp)/P_comp);
+            }
+        }
+        std::cout << "\tMax P error: " << max_P_err << " @ [g2=" << test_03_data[max_err_idx][0u] << ",g3=" << test_03_data[max_err_idx][1u] << ",x=" << max_err_x << ",P=" << max_err_P << "]\n";
+        std::cout << "\tAverage P error: " << acc_P_err / (real_type(test_03_data.size())*100) << '\n';
+    }
+};
+
+BOOST_AUTO_TEST_CASE(test_03)
+{
+    std::cout << "Testing the computation of complex P\n";
+    std::cout << "====================================\n";
+    boost::mpl::for_each<real_types>(tester_03());
+    std::cout << "\n\n\n";
+}
+
+struct tester_04
+{
+    template <typename RealType>
+    void operator()(const RealType &)
+    {
+        std::cout << "Testing type: " << typeid(RealType).name() << '\n';
+        using real_type = RealType;
+        real_type g2, g3, x, P, P_comp, max_P_err = 0, acc_P_err = 0;
+        size_type max_err_idx = 0;
+        std::string max_err_x, max_err_P;
+        for (size_type i = 0u; i < test_04_data.size(); ++i) {
+            const auto &v = test_04_data[i];
+            // Read the invariant values from mpmath.
+            real_from_str(g2,v[0]);
+            real_from_str(g3,v[1]);
+            // Build the W object.
+            we<real_type> w(g2,g3);
+            for (decltype(v.size()) j = 2u; j < v.size(); j += 2u) {
+                real_from_str(x,v[j]);
+                P = w.Pprime(x);
+                real_from_str(P_comp,v[j + 1u]);
+                if (std::abs((P-P_comp)/P_comp) > max_P_err) {
+                    max_P_err = std::abs((P-P_comp)/P_comp);
+                    max_err_idx = i;
+                    max_err_x = v[j];
+                    max_err_P = v[j+1];
+                }
+                acc_P_err += std::abs((P-P_comp)/P_comp);
+            }
+        }
+        std::cout << "\tMax P' error: " << max_P_err << " @ [g2=" << test_04_data[max_err_idx][0u] << ",g3=" << test_04_data[max_err_idx][1u] << ",x=" << max_err_x << ",P'=" << max_err_P << "]\n";
+        std::cout << "\tAverage P' error: " << acc_P_err / (real_type(test_04_data.size())*100) << '\n';
+    }
+};
+
+BOOST_AUTO_TEST_CASE(test_04)
+{
+    std::cout << "Testing the computation of real P'\n";
+    std::cout << "==================================\n";
+    boost::mpl::for_each<real_types>(tester_04());
+    std::cout << "\n\n\n";
+}
+
+struct tester_05
+{
+    template <typename RealType>
+    void operator()(const RealType &)
+    {
+        std::cout << "Testing type: " << typeid(RealType).name() << '\n';
+        using real_type = RealType;
+        using complex_type = typename we<real_type>::complex_type;
+        real_type g2, g3, max_P_err = 0, acc_P_err = 0;
+        complex_type c, P, P_comp;
+        size_type max_err_idx = 0;
+        std::string max_err_x, max_err_P;
+        for (size_type i = 0u; i < test_05_data.size(); ++i) {
+            const auto &v = test_05_data[i];
+            // Read the invariant values from mpmath.
+            real_from_str(g2,v[0]);
+            real_from_str(g3,v[1]);
+            // Build the W object.
+            we<real_type> w(g2,g3);
+            for (decltype(v.size()) j = 2u; j < v.size(); j += 4u) {
+                complex_from_str(c,v[j],v[j + 1u]);
+                P = w.Pprime(c);
+                complex_from_str(P_comp,v[j + 2u],v[j + 3u]);
+                if (std::abs((P-P_comp)/P_comp) > max_P_err) {
+                    max_P_err = std::abs((P-P_comp)/P_comp);
+                    max_err_idx = i;
+                    max_err_x = std::string("(") + v[j] + "," + v[j + 1u] + ")";
+                    max_err_P = std::string("(") + v[j + 2u] + "," + v[j + 3u] + ")";
+                }
+                acc_P_err += std::abs((P-P_comp)/P_comp);
+            }
+        }
+        std::cout << "\tMax P' error: " << max_P_err << " @ [g2=" << test_05_data[max_err_idx][0u] << ",g3=" << test_05_data[max_err_idx][1u] << ",x=" << max_err_x << ",P=" << max_err_P << "]\n";
+        std::cout << "\tAverage P' error: " << acc_P_err / (real_type(test_05_data.size())*100) << '\n';
+    }
+};
+
+BOOST_AUTO_TEST_CASE(test_05)
+{
+    std::cout << "Testing the computation of complex P'\n";
+    std::cout << "=====================================\n";
+    boost::mpl::for_each<real_types>(tester_05());
+    std::cout << "\n\n\n";
 }
