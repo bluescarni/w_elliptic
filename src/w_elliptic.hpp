@@ -552,51 +552,39 @@ class we
             }
             return z_retval;
         }
-//         complex_type zeta(const complex_type &c) const
-//         {
-//             const real_type g2 = m_invariants[0], g3 = m_invariants[1], g2_2 = g2/real_type(2);
-//             // Reduction to the fundamental cell.
-//             auto ab = reduce_to_fc(c);
-//             real_type N = std::floor(std::get<0>(ab)), M = std::floor(std::get<1>(ab));
-//             real_type alpha = std::get<0>(ab) - N, beta = std::get<1>(ab) - M;
-//             complex cred(m_periods[0] * alpha + m_periods[1] * beta);
-//
-//
-//
-//             real_type nf(0);
-//             if (xred > m_periods[0].real()) {
-//                 nf = std::trunc(xred / m_periods[0].real());
-//                 xred -= m_periods[0].real() * nf;
-//             }
-//             bool negate2 = false;
-//             // Further reduction.
-//             real_type extra_red(0);
-//             if (xred > m_periods[0].real() / real_type(2)) {
-//                 xred = m_periods[0].real() - xred;
-//                 negate2 = true;
-//                 extra_red = m_eta*m_periods[0].real();
-//             }
-//             // Now we need to reduce xred to the radius of convergence of the Laurent series.
-//             std::size_t n = 0u;
-//             while (xred >= m_conv_radius / real_type(8)) {
-//                 xred /= real_type(2);
-//                 ++n;
-//             }
-//             // Laurent iteration.
-//             auto retval = std::make_tuple(zeta_laurent(xred),Pprime_laurent(xred),P_laurent(xred));
-//             for (std::size_t i = 0u; i < n; ++i) {
-//                 retval = duplicate_zeta(std::get<0>(retval),std::get<1>(retval),std::get<2>(retval),g2,g2_2,g3);
-//             }
-//             auto z_retval = std::get<0>(retval);
-//             if (negate2) {
-//                 z_retval = -z_retval + real_type(2)*m_eta;
-//             }
-//             z_retval += real_type(2)*nf*m_eta;
-//             if (negate) {
-//                 return -z_retval;
-//             }
-//             return z_retval;
-//         }
+        complex_type zeta(const complex_type &c) const
+        {
+            const real_type g2 = m_invariants[0], g3 = m_invariants[1], g2_2 = g2/real_type(2);
+            // Reduction to the fundamental cell.
+            auto ab = reduce_to_fc(c);
+            real_type N = std::floor(std::get<0>(ab)), M = std::floor(std::get<1>(ab));
+            real_type alpha = std::get<0>(ab) - N, beta = std::get<1>(ab) - M;
+            complex_type cred(m_periods[0] * alpha + m_periods[1] * beta);
+            // Attempt a further reduction.
+            bool negate = false;
+            complex_type new_cred = -cred + m_periods[0] + m_periods[1];
+            if (std::abs(new_cred) < std::abs(cred)) {
+                negate = true;
+                cred = new_cred;
+            }
+            // Now we need to reduce cred to the radius of convergence of the Laurent series.
+            std::size_t n = 0u;
+            while (std::abs(cred) >= m_conv_radius / real_type(8)) {
+                cred /= real_type(2);
+                ++n;
+            }
+            // Laurent iteration.
+            auto retval = std::make_tuple(zeta_laurent(cred),Pprime_laurent(cred),P_laurent(cred));
+            for (std::size_t i = 0u; i < n; ++i) {
+                retval = duplicate_zeta(std::get<0>(retval),std::get<1>(retval),std::get<2>(retval),g2,g2_2,g3);
+            }
+            auto z_retval = std::get<0>(retval);
+            if (negate) {
+                z_retval = -z_retval + real_type(2)*m_etas[0] + real_type(2)*m_etas[1];
+            }
+            z_retval += real_type(2)*N*m_etas[0] + real_type(2)*M*m_etas[1];
+            return z_retval;
+        }
         complex_type zeta_dup(const complex_type &z) const
         {
             // TODO assert in fundamental cell?

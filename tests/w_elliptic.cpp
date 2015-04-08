@@ -98,12 +98,14 @@ static std::vector<std::vector<std::string>> read_data(const std::string &filena
     return retval;
 }
 
+// Test data - these are tables of real numbers in string form.
 static std::vector<std::vector<std::string>> test_01_data = read_data("../tests/test_01_data.txt");
 static std::vector<std::vector<std::string>> test_02_data = read_data("../tests/test_02_data.txt");
 static std::vector<std::vector<std::string>> test_03_data = read_data("../tests/test_03_data.txt");
 static std::vector<std::vector<std::string>> test_04_data = read_data("../tests/test_04_data.txt");
 static std::vector<std::vector<std::string>> test_05_data = read_data("../tests/test_05_data.txt");
 static std::vector<std::vector<std::string>> test_06_data = read_data("../tests/test_06_data.txt");
+static std::vector<std::vector<std::string>> test_07_data = read_data("../tests/test_07_data.txt");
 
 typedef boost::mpl::vector<float,double,long double> real_types;
 
@@ -405,5 +407,50 @@ BOOST_AUTO_TEST_CASE(test_06)
     std::cout << "Testing the computation of real zeta\n";
     std::cout << "====================================\n";
     boost::mpl::for_each<real_types>(tester_06());
+    std::cout << "\n\n\n";
+}
+
+struct tester_07
+{
+    template <typename RealType>
+    void operator()(const RealType &)
+    {
+        std::cout << "Testing type: " << typeid(RealType).name() << '\n';
+        using real_type = RealType;
+        using complex_type = typename we<real_type>::complex_type;
+        real_type g2, g3, max_P_err = 0, acc_P_err = 0;
+        complex_type c, P, P_comp;
+        size_type max_err_idx = 0;
+        std::string max_err_x, max_err_P;
+        for (size_type i = 0u; i < test_07_data.size(); ++i) {
+            const auto &v = test_07_data[i];
+            // Read the invariant values from mpmath.
+            real_from_str(g2,v[0]);
+            real_from_str(g3,v[1]);
+            // Build the W object.
+            we<real_type> w(g2,g3);
+            for (decltype(v.size()) j = 2u; j < v.size(); j += 4u) {
+                complex_from_str(c,v[j],v[j + 1u]);
+                P = w.zeta(c);
+                complex_from_str(P_comp,v[j + 2u],v[j + 3u]);
+                if (std::abs((P-P_comp)/P_comp) > max_P_err) {
+                    max_P_err = std::abs((P-P_comp)/P_comp);
+                    max_err_idx = i;
+                    max_err_x = std::string("(") + v[j] + "," + v[j + 1u] + ")";
+                    max_err_P = std::string("(") + v[j + 2u] + "," + v[j + 3u] + ")";
+                }
+                acc_P_err += std::abs((P-P_comp)/P_comp);
+            }
+        }
+        std::cout << "\tMax zeta error: " << max_P_err << " @ [g2=" << test_07_data[max_err_idx][0u] << ",g3=" << test_07_data[max_err_idx][1u] << ",c=" << max_err_x << ",zeta=" << max_err_P << "]\n";
+        std::cout << "\tAverage zeta error: " << acc_P_err / (real_type(test_07_data.size())*100) << '\n';
+    }
+};
+
+BOOST_AUTO_TEST_CASE(test_07)
+{
+    std::cout << "Testing the computation of complex zeta\n";
+    std::cout << "=======================================\n";
+    boost::mpl::for_each<real_types>(tester_07());
     std::cout << "\n\n\n";
 }
