@@ -165,7 +165,7 @@ struct tester_01
                 }
             }
             // Errors on eta.
-            err = std::abs((w.eta()-eta)/eta);
+            err = std::abs((w.etas()[0]-eta)/eta);
             acc_eta_err += err;
             if (err > max_eta_err) {
                 max_eta_err = err;

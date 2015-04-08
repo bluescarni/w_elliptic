@@ -352,8 +352,9 @@ class we
             setup_roots(real_type(4),-g2,-g3);
             // Computation of the periods.
             setup_periods();
-            // Calculate the eta constant.
-            m_eta = zeta_dup(m_periods[0]/real_type(2)).real();
+            // Calculate the eta constants.
+            m_etas[0u] = zeta_dup(m_periods[0]/real_type(2)).real();
+            m_etas[1u] = zeta_dup(m_periods[1]/real_type(2));
             // Setup q and related.
             setup_q();
         }
@@ -369,9 +370,9 @@ class we
         {
             return m_periods;
         }
-        const real_type &eta() const
+        const std::array<complex_type,2> &etas() const
         {
-            return m_eta;
+            return m_etas;
         }
         friend std::ostream &operator<<(std::ostream &os, const we &w)
         {
@@ -379,7 +380,7 @@ class we
             os << "Delta: " << w.m_delta << '\n';
             os << "Roots: [" << w.m_roots[0] << ',' << w.m_roots[1] << ',' << w.m_roots[2] << "]\n";
             os << "Periods: [" << w.m_periods[0] << ',' << w.m_periods[1] << "]\n";
-            os << "eta: " << w.m_eta << '\n';
+            os << "etas: [" << w.m_etas[0] << ',' << w.m_etas[1] << "]\n";
             os << "q: " << w.m_q << '\n';
             return os;
         }
@@ -528,7 +529,7 @@ class we
             if (xred > m_periods[0].real() / real_type(2)) {
                 xred = m_periods[0].real() - xred;
                 negate2 = true;
-                extra_red = m_eta*m_periods[0].real();
+                extra_red = m_etas[0].real()*m_periods[0].real();
             }
             // Now we need to reduce xred to the radius of convergence of the Laurent series.
             std::size_t n = 0u;
@@ -543,14 +544,59 @@ class we
             }
             auto z_retval = std::get<0>(retval);
             if (negate2) {
-                z_retval = -z_retval + real_type(2)*m_eta;
+                z_retval = -z_retval + real_type(2)*m_etas[0].real();
             }
-            z_retval += real_type(2)*nf*m_eta;
+            z_retval += real_type(2)*nf*m_etas[0].real();
             if (negate) {
                 return -z_retval;
             }
             return z_retval;
         }
+//         complex_type zeta(const complex_type &c) const
+//         {
+//             const real_type g2 = m_invariants[0], g3 = m_invariants[1], g2_2 = g2/real_type(2);
+//             // Reduction to the fundamental cell.
+//             auto ab = reduce_to_fc(c);
+//             real_type N = std::floor(std::get<0>(ab)), M = std::floor(std::get<1>(ab));
+//             real_type alpha = std::get<0>(ab) - N, beta = std::get<1>(ab) - M;
+//             complex cred(m_periods[0] * alpha + m_periods[1] * beta);
+//
+//
+//
+//             real_type nf(0);
+//             if (xred > m_periods[0].real()) {
+//                 nf = std::trunc(xred / m_periods[0].real());
+//                 xred -= m_periods[0].real() * nf;
+//             }
+//             bool negate2 = false;
+//             // Further reduction.
+//             real_type extra_red(0);
+//             if (xred > m_periods[0].real() / real_type(2)) {
+//                 xred = m_periods[0].real() - xred;
+//                 negate2 = true;
+//                 extra_red = m_eta*m_periods[0].real();
+//             }
+//             // Now we need to reduce xred to the radius of convergence of the Laurent series.
+//             std::size_t n = 0u;
+//             while (xred >= m_conv_radius / real_type(8)) {
+//                 xred /= real_type(2);
+//                 ++n;
+//             }
+//             // Laurent iteration.
+//             auto retval = std::make_tuple(zeta_laurent(xred),Pprime_laurent(xred),P_laurent(xred));
+//             for (std::size_t i = 0u; i < n; ++i) {
+//                 retval = duplicate_zeta(std::get<0>(retval),std::get<1>(retval),std::get<2>(retval),g2,g2_2,g3);
+//             }
+//             auto z_retval = std::get<0>(retval);
+//             if (negate2) {
+//                 z_retval = -z_retval + real_type(2)*m_eta;
+//             }
+//             z_retval += real_type(2)*nf*m_eta;
+//             if (negate) {
+//                 return -z_retval;
+//             }
+//             return z_retval;
+//         }
         complex_type zeta_dup(const complex_type &z) const
         {
             // TODO assert in fundamental cell?
@@ -660,7 +706,7 @@ class we
         complex_type ln_sigma(const complex_type &c) const
         {
             complex_type arg = pi_const * c / m_periods[0].real(), S = std::sin(arg), C = std::cos(arg), Sn(real_type(0)), Cn(real_type(1));
-            complex_type retval = std::log(m_periods[0].real()/pi_const) + m_eta  / m_periods[0].real() * (c * c) + std::log(S);
+            complex_type retval = std::log(m_periods[0].real()/pi_const) + m_etas[0].real()  / m_periods[0].real() * (c * c) + std::log(S);
             std::size_t i = 1u, miter = max_iter + 1u;
             complex_type tmp_s, tmp_c, mul;
             while (true) {
@@ -688,7 +734,7 @@ class we
         {
             complex_type arg = pi_const * c / m_periods[0].real();
             const real_type a = arg.real(), b = arg.imag();
-            real_type retval = std::log(m_periods[0].real()/pi_const) + m_eta * (c.real()*c.real()-c.imag()*c.imag()) / m_periods[0].real()
+            real_type retval = std::log(m_periods[0].real()/pi_const) + m_etas[0].real() * (c.real()*c.real()-c.imag()*c.imag()) / m_periods[0].real()
                 + std::log(std::sin(pi_const*c/m_periods[0].real())).real();
             std::size_t i = 1u, miter = max_iter + 1u;
             // NOTE: here the sincos function might be useful.
@@ -838,7 +884,7 @@ std::cout << "ell=" << ell << '\n';
         std::array<real_type,max_iter>  m_ck_laurent;
         std::array<complex_type,2>      m_periods;
         real_type                       m_conv_radius;
-        real_type                       m_eta;
+        std::array<complex_type,2>      m_etas;
         complex_type                    m_q;
         std::array<real_type,max_iter>  m_ln_sigma_c;
 };
