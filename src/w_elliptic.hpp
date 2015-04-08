@@ -366,6 +366,10 @@ class we
         {
             return m_periods;
         }
+        const real_type &eta() const
+        {
+            return m_eta;
+        }
         friend std::ostream &operator<<(std::ostream &os, const we &w)
         {
             os << "Invariants: [" << w.m_invariants[0] << ',' << w.m_invariants[1] << "]\n";
@@ -532,7 +536,7 @@ class we
             // TODO here and in other laurent assert convergence radius.
             U z2(z*z), tmp(z2);
             U retval = U(1) / z2;
-            std::size_t i = 2u, miter = max_iter + 2u;
+            std::size_t i = 2u, miter = max_iter + 2u, counter = 0u;
             while (true) {
                 if (i == miter) {
                     std::cout << "WARNING max_iter reached\n";
@@ -541,7 +545,12 @@ class we
                 U add(ck(i) * tmp);
                 retval += add;
                 if (std::abs(add/retval) <= detail::tolerance<U>()) {
-                    break;
+                    ++counter;
+                    if (counter == 3u) {
+                        break;
+                    }
+                } else {
+                    counter = 0u;
                 }
                 tmp *= z2;
                 ++i;
@@ -554,7 +563,7 @@ class we
         {
             U z2(z*z), tmp(z);
             U retval = U(-2) / (z2*z);
-            std::size_t i = 2u, miter = max_iter + 2u;
+            std::size_t i = 2u, miter = max_iter + 2u, counter = 0u;
             while (true) {
                 if (i == miter) {
                     std::cout << "WARNING max_iter reached\n";
@@ -563,7 +572,12 @@ class we
                 U add((U(2)*U(i) - U(2))*ck(i) * tmp);
                 retval += add;
                 if (std::abs(add/retval) <= detail::tolerance<U>()) {
-                    break;
+                    ++counter;
+                    if (counter == 3u) {
+                        break;
+                    }
+                } else {
+                    counter = 0u;
                 }
                 tmp *= z2;
                 ++i;
@@ -575,7 +589,7 @@ class we
         {
             U z2(z*z), tmp(z*z2);
             U retval = U(1) / (z);
-            std::size_t i = 2u, miter = max_iter + 2u;
+            std::size_t i = 2u, miter = max_iter + 2u, counter = 0u;
             while (true) {
                 if (i == miter) {
                     std::cout << "WARNING max_iter reached\n";
@@ -584,7 +598,12 @@ class we
                 U sub(ck(i) * tmp/(U(2)*U(i) - U(1)));
                 retval -= sub;
                 if (std::abs(sub/retval) <= detail::tolerance<U>()) {
-                    break;
+                    ++counter;
+                    if (counter == 3u) {
+                        break;
+                    }
+                } else {
+                    counter = 0u;
                 }
                 tmp *= z2;
                 ++i;
