@@ -28,6 +28,7 @@
 #include <boost/algorithm/string/split.hpp>
 #include <boost/mpl/for_each.hpp>
 #include <boost/mpl/vector.hpp>
+#include <cmath>
 #include <fstream>
 #include <random>
 #include <stdexcept>
@@ -107,6 +108,7 @@ static std::vector<std::vector<std::string>> test_04_data = read_data("../tests/
 static std::vector<std::vector<std::string>> test_05_data = read_data("../tests/test_05_data.txt");
 static std::vector<std::vector<std::string>> test_06_data = read_data("../tests/test_06_data.txt");
 static std::vector<std::vector<std::string>> test_07_data = read_data("../tests/test_07_data.txt");
+static std::vector<std::vector<std::string>> test_09_data = read_data("../tests/test_09_data.txt");
 
 // RNG.
 static std::mt19937 rng;
@@ -501,5 +503,50 @@ BOOST_AUTO_TEST_CASE(test_08)
     std::cout << "Testing the computation of inverse P\n";
     std::cout << "====================================\n";
     boost::mpl::for_each<real_types>(tester_08());
+    std::cout << "\n\n\n";
+}
+
+struct tester_09
+{
+    template <typename RealType>
+    void operator()(const RealType &)
+    {
+        std::cout << "Testing type: " << typeid(RealType).name() << '\n';
+        using real_type = RealType;
+        using complex_type = typename we<real_type>::complex_type;
+        real_type g2, g3, max_P_err = 0, acc_P_err = 0;
+        complex_type c, P, P_comp;
+        size_type max_err_idx = 0;
+        std::string max_err_x, max_err_P;
+        for (size_type i = 0u; i < test_09_data.size(); ++i) {
+            const auto &v = test_09_data[i];
+            // Read the invariant values from mpmath.
+            real_from_str(g2,v[0]);
+            real_from_str(g3,v[1]);
+            // Build the W object.
+            we<real_type> w(g2,g3);
+            for (decltype(v.size()) j = 2u; j < v.size(); j += 4u) {
+                complex_from_str(c,v[j],v[j + 1u]);
+                P = w.sigma(c);
+                complex_from_str(P_comp,v[j + 2u],v[j + 3u]);
+                if (std::abs((P-P_comp)/P_comp) > max_P_err) {
+                    max_P_err = std::abs((P-P_comp)/P_comp);
+                    max_err_idx = i;
+                    max_err_x = std::string("(") + v[j] + "," + v[j + 1u] + ")";
+                    max_err_P = std::string("(") + v[j + 2u] + "," + v[j + 3u] + ")";
+                }
+                acc_P_err += std::abs((P-P_comp)/P_comp);
+            }
+        }
+        std::cout << "\tMax sigma error: " << max_P_err << " @ [g2=" << test_09_data[max_err_idx][0u] << ",g3=" << test_09_data[max_err_idx][1u] << ",c=" << max_err_x << ",sigma=" << max_err_P << "]\n";
+        std::cout << "\tAverage sigma error: " << acc_P_err / (real_type(test_09_data.size())*100) << '\n';
+    }
+};
+
+BOOST_AUTO_TEST_CASE(test_09)
+{
+    std::cout << "Testing the computation of complex sigma\n";
+    std::cout << "========================================\n";
+    boost::mpl::for_each<real_types>(tester_09());
     std::cout << "\n\n\n";
 }

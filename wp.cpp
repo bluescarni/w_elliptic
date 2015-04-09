@@ -9,7 +9,7 @@ using namespace w_elliptic;
 int main()
 {
     std::cout << std::setprecision(15) << '\n';
-    we<double> w(.3,.4);
+    we<double> w(4,.4);
     std::cout << w << '\n';
 //     std::cout << w_elliptic<long double>(2.,.1) << '\n';
 //     std::cout << w_elliptic<long double>(2.,-.1) << '\n';
@@ -20,7 +20,13 @@ int main()
 //     std::cout << we.P(.3) << '\n';
 //     we.P(std::complex<double>(3,3));
 //     return 0;
-//     std::cout << we.ln_sigma_real(.1) << '\n';
+
+
+
+// std::cout << std::exp(w.ln_sigma(std::complex<double>(1.,-.3))) << '\n';
+std::cout << std::exp(w.ln_sigma(std::complex<double>(1.,-.3))) << '\n';
+
+
 //     return 0;
 //     {
 //     std::complex<double> retval = 0.;
@@ -30,24 +36,5 @@ int main()
 //     }
 //     std::cout << retval << '\n';
 //     }
-//     std::cout << w.zeta_dup(std::complex<double>{.1,.5}) << '\n';
-//     auto t = w.reduce_to_fc(std::complex<double>{34.,-78.});
-//     std::cout << std::get<0>(t) << '\n';
-//     std::cout << std::get<1>(t) << '\n';
-//     std::cout << w.zeta(3.) << '\n';
-    auto inv = we<double>(.3,-.4).Pinv(4);
-    std::cout << "Inv:" << inv << '\n';
-    std::cout << inv.imag()/inv.real() << '\n';
-    std::cout << detail::tolerance<double>() << '\n';
 
-//     we<double> w(8.55106990025995017390414,-4.989873172751188690199342090636491775512);
-//     std::cout << w.P(-29.08715212605525171679194129027529024577917167) << '\n';
-//     std::cout << w.P_four(-29.08715212605525171679194129027529024577917167) << '\n';
-
-
-//     we<double> w(0.,-3.49591274505219828938606951851397752761840820312);
-//     std::cout << w.zeta(-5.7358667654396764571398602142841973490603988163169*10) << '\n';
-//     std::cout << w.zeta(std::complex<double>(-5.7358667654396764571398602142841973490603988163169*10)) << '\n';
-// //std::cout << w.P_four(-5.7358667654396764571398602142841973490603988163169) << '\n';
-//     std::cout << w << '\n';
 }

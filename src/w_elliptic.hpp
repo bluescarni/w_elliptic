@@ -691,10 +691,22 @@ class we
             real_type alpha((p2i*re-p2r*im)/det), beta((-p1i*re+p1r*im)/det);
             return std::make_tuple(std::move(alpha),std::move(beta));
         }
-        complex_type ln_sigma(const complex_type &c) const
+        complex_type ln_sigma_cont(const complex_type &c) const
         {
-            complex_type arg = pi_const * c / m_periods[0].real(), S = std::sin(arg), C = std::cos(arg), Sn(real_type(0)), Cn(real_type(1));
-            complex_type retval = std::log(m_periods[0].real()/pi_const) + m_etas[0].real()  / m_periods[0].real() * (c * c) + std::log(S);
+            const complex_type om1 = m_periods[0]/real_type(2), om3 = m_periods[1]/real_type(2);
+            auto cred(c);
+            // Initial reduction to improve the convergence of the expansion.
+            bool further_red = false;
+            if (cred.imag() / m_periods[1].imag() > real_type(.5)) {
+                further_red = true;
+                cred = -cred + m_periods[0] + m_periods[1];
+            }
+            // Reduce to the fundamental real period.
+            real_type N(std::floor(cred.real()/m_periods[0].real()));
+            complex_type cred_F(cred.real() - N*m_periods[0].real(),cred.imag());
+            // Perform the expansion.
+            complex_type arg = pi_const * cred_F / m_periods[0].real(), S = std::sin(arg), C = std::cos(arg), Sn(real_type(0)), Cn(real_type(1));
+            complex_type retval = std::log(m_periods[0].real()/pi_const) + m_etas[0].real()  / m_periods[0].real() * (cred_F * cred_F) + std::log(S);
             std::size_t i = 1u, miter = max_iter + 1u;
             complex_type tmp_s, tmp_c, mul;
             while (true) {
@@ -716,7 +728,33 @@ class we
                 }
                 ++i;
             }
+            // Add the homogeneity relations.
+            retval += real_type(2)*N*m_etas[0]*(cred_F + N*om1) - complex_type(real_type(0),N*pi_const);
+            // Restore the initial reduction.
+            if (further_red) {
+                retval -= (cred - om1 - om3) * (real_type(2)*m_etas[0] + real_type(2)*m_etas[1]);
+            }
             return retval;
+        }
+        complex_type ln_sigma(const complex_type &c) const
+        {
+            if (c.imag() >= real_type(0) && c.imag() < m_periods[1].imag()) {
+                return ln_sigma_cont(c);
+            }
+            // Otherwise, use the homogeneity formulae.
+            auto ab = reduce_to_fc(c);
+            real_type N = std::floor(std::get<0>(ab)), M = std::floor(std::get<1>(ab));
+            real_type alpha = std::get<0>(ab) - N, beta = std::get<1>(ab) - M;
+            complex_type cred(m_periods[0] * alpha + m_periods[1] * beta);
+            auto retval = ln_sigma_cont(cred);
+            // NOTE: here the use of N and M is switched wrt the use in A+S.
+            retval += complex_type(real_type(0),pi_const*(M+N+M*N));
+            retval += real_type(2) * (cred + N*m_periods[0]/real_type(2) + M*m_periods[1]/real_type(2)) * (N*m_etas[0] + M*m_etas[1]);
+            return retval;
+        }
+        complex_type sigma(const complex_type &c) const
+        {
+            return std::exp(ln_sigma(c));
         }
         real_type ln_sigma_real(const complex_type &c) const
         {
