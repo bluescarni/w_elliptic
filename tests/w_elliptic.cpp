@@ -29,6 +29,7 @@
 #include <boost/mpl/for_each.hpp>
 #include <boost/mpl/vector.hpp>
 #include <fstream>
+#include <random>
 #include <stdexcept>
 #include <string>
 #include <typeinfo>
@@ -106,6 +107,9 @@ static std::vector<std::vector<std::string>> test_04_data = read_data("../tests/
 static std::vector<std::vector<std::string>> test_05_data = read_data("../tests/test_05_data.txt");
 static std::vector<std::vector<std::string>> test_06_data = read_data("../tests/test_06_data.txt");
 static std::vector<std::vector<std::string>> test_07_data = read_data("../tests/test_07_data.txt");
+
+// RNG.
+static std::mt19937 rng;
 
 typedef boost::mpl::vector<float,double,long double> real_types;
 
@@ -452,5 +456,50 @@ BOOST_AUTO_TEST_CASE(test_07)
     std::cout << "Testing the computation of complex zeta\n";
     std::cout << "=======================================\n";
     boost::mpl::for_each<real_types>(tester_07());
+    std::cout << "\n\n\n";
+}
+
+struct tester_08
+{
+    template <typename RealType>
+    void operator()(const RealType &)
+    {
+        std::cout << "Testing type: " << typeid(RealType).name() << '\n';
+        using real_type = RealType;
+        using complex_type = typename we<real_type>::complex_type;
+        std::uniform_real_distribution<double> rdist(-100.,100.);
+        std::uniform_real_distribution<double> g2dist(-10.,20.);
+        std::uniform_real_distribution<double> g3dist(-10.,10.);
+        real_type max_Pinv_err = 0., max_g2 = 0., max_g3 = 0., acc_err = 0.;
+        complex_type max_P(real_type(0.),real_type(0.)), max_P_inv(max_P);
+        unsigned long counter = 0;
+        for (int i = 0; i < 20; ++i) {
+            real_type g2(g2dist(rng)), g3(g3dist(rng));
+            we<real_type> w(g2,g3);
+            for (int j = 0; j < 1000; ++j) {
+                complex_type P(real_type(rdist(rng)),real_type(rdist(rng)));
+                auto Pinv = w.Pinv(P);
+                auto err = std::abs((P-w.P(Pinv))/P);
+                if (err > max_Pinv_err) {
+                    max_Pinv_err = err;
+                    max_g2 = g2;
+                    max_g3 = g3;
+                    max_P = P;
+                    max_P_inv = Pinv;
+                }
+                acc_err += err;
+                ++counter;
+            }
+        }
+        std::cout << "\tMax Pinv error: " << max_Pinv_err << " @ [g2=" << max_g2 << ",g3=" << max_g3 << ",P=" << max_P  << ",Pinv=" << max_P_inv << "]\n";
+        std::cout << "\tAverage Pinv error: " << acc_err / real_type(counter) << '\n';
+    }
+};
+
+BOOST_AUTO_TEST_CASE(test_08)
+{
+    std::cout << "Testing the computation of inverse P\n";
+    std::cout << "====================================\n";
+    boost::mpl::for_each<real_types>(tester_08());
     std::cout << "\n\n\n";
 }
