@@ -493,6 +493,43 @@ struct tester_08
                 ++counter;
             }
         }
+        // Add a couple of tests with g2/g3 == 0.
+        for (int i = 0; i < 4; ++i) {
+            real_type g2(0), g3(g3dist(rng));
+            we<real_type> w(g2,g3);
+            for (int j = 0; j < 1000; ++j) {
+                complex_type P(real_type(rdist(rng)),real_type(rdist(rng)));
+                auto Pinv = w.Pinv(P);
+                auto err = std::abs((P-w.P(Pinv))/P);
+                if (err > max_Pinv_err) {
+                    max_Pinv_err = err;
+                    max_g2 = g2;
+                    max_g3 = g3;
+                    max_P = P;
+                    max_P_inv = Pinv;
+                }
+                acc_err += err;
+                ++counter;
+            }
+        }
+        for (int i = 0; i < 4; ++i) {
+            real_type g2(g2dist(rng)), g3(0);
+            we<real_type> w(g2,g3);
+            for (int j = 0; j < 1000; ++j) {
+                complex_type P(real_type(rdist(rng)),real_type(rdist(rng)));
+                auto Pinv = w.Pinv(P);
+                auto err = std::abs((P-w.P(Pinv))/P);
+                if (err > max_Pinv_err) {
+                    max_Pinv_err = err;
+                    max_g2 = g2;
+                    max_g3 = g3;
+                    max_P = P;
+                    max_P_inv = Pinv;
+                }
+                acc_err += err;
+                ++counter;
+            }
+        }
         std::cout << "\tMax Pinv error: " << max_Pinv_err << " @ [g2=" << max_g2 << ",g3=" << max_g3 << ",P=" << max_P  << ",Pinv=" << max_P_inv << "]\n";
         std::cout << "\tAverage Pinv error: " << acc_err / real_type(counter) << '\n';
     }
