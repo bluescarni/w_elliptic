@@ -26,7 +26,9 @@
 #include <cmath>
 #include <complex>
 #include <cstddef>
+#include <iomanip>
 #include <iostream>
+#include <sstream>
 #include <tuple>
 #include <type_traits>
 #include <utility>
@@ -376,12 +378,17 @@ class we
         }
         friend std::ostream &operator<<(std::ostream &os, const we &w)
         {
-            os << "Invariants: [" << w.m_invariants[0] << ',' << w.m_invariants[1] << "]\n";
-            os << "Delta: " << w.m_delta << '\n';
-            os << "Roots: [" << w.m_roots[0] << ',' << w.m_roots[1] << ',' << w.m_roots[2] << "]\n";
-            os << "Periods: [" << w.m_periods[0] << ',' << w.m_periods[1] << "]\n";
-            os << "etas: [" << w.m_etas[0] << ',' << w.m_etas[1] << "]\n";
-            os << "q: " << w.m_q << '\n';
+            std::ostringstream oss;
+            // NOTE: print extra 2 digits - apparently this should be enough to guarantee exact
+            // conversion to/from string form.
+            oss << std::setprecision(std::numeric_limits<real_type>::digits10 + 2);
+            oss << "Invariants: [" << w.m_invariants[0] << ',' << w.m_invariants[1] << "]\n";
+            oss << "Delta: " << w.m_delta << '\n';
+            oss << "Roots: [" << w.m_roots[0] << ',' << w.m_roots[1] << ',' << w.m_roots[2] << "]\n";
+            oss << "Periods: [" << w.m_periods[0] << ',' << w.m_periods[1] << "]\n";
+            oss << "etas: [" << w.m_etas[0] << ',' << w.m_etas[1] << "]\n";
+            oss << "q: " << w.m_q << '\n';
+            os << oss.str();
             return os;
         }
         real_type P(const real_type &x) const

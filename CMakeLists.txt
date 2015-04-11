@@ -17,17 +17,20 @@ endif()
 
 # Build option: enable test set.
 option(BUILD_TESTS "Build test set." OFF)
+# Build option: build the Python bindings.
+option(BUILD_PYTHON_BINDINGS "Build the Python bindings." OFF)
 
-# Compiler setup.
+# Setup compiler.
+include(w_ellipticCompilerLinkerSettings)
+
+# Tests setup.
 if(BUILD_TESTS)
-    # Setup compiler.
-    include(w_ellipticCompilerLinkerSettings)
-    # Boost unit test library.
-    find_package(Boost 1.48.0 REQUIRED COMPONENTS "unit_test_framework")
-    include_directories(${Boost_INCLUDE_DIRS})
-    # Assemble all libraries and add the tests subdirectory.
-    set(MANDATORY_LIBRARIES ${Boost_UNIT_TEST_FRAMEWORK_LIBRARY})
     add_subdirectory("${CMAKE_SOURCE_DIR}/tests")
+endif()
+
+# Python bindings setup.
+if(BUILD_PYTHON_BINDINGS)
+    add_subdirectory("${CMAKE_SOURCE_DIR}/python")
 endif()
 
 # Install the headers.

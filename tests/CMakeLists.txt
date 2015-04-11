@@ -1,3 +1,8 @@
+# Boost unit test library setup.
+find_package(Boost 1.48.0 REQUIRED COMPONENTS "unit_test_framework")
+include_directories(${Boost_INCLUDE_DIRS})
+set(MANDATORY_LIBRARIES ${Boost_UNIT_TEST_FRAMEWORK_LIBRARY})
+
 # NOTE: a bit hackish, as in principle Boost could
 # be compiled statically. Proper way would be to check
 # this with a try_compile or similar.
