@@ -587,3 +587,50 @@ BOOST_AUTO_TEST_CASE(test_09)
     boost::mpl::for_each<real_types>(tester_09());
     std::cout << "\n\n\n";
 }
+
+struct tester_10
+{
+    template <typename RealType>
+    void operator()(const RealType &)
+    {
+        std::cout << "Testing type: " << typeid(RealType).name() << '\n';
+        using real_type = RealType;
+        using complex_type = typename we<real_type>::complex_type;
+        std::uniform_real_distribution<double> rdist(-2.,2.);
+        std::uniform_real_distribution<double> g2dist(-10.,20.);
+        std::uniform_real_distribution<double> g3dist(-10.,10.);
+        real_type max_err = 0., max_g2 = 0., max_g3 = 0., acc_err = 0.;
+        complex_type max_z(0);
+        unsigned long counter = 0;
+        for (int i = 0; i < 20; ++i) {
+            real_type g2(g2dist(rng)), g3(g3dist(rng));
+            we<real_type> w(g2,g3);
+            for (int j = 0; j < 1000; ++j) {
+                complex_type z(real_type(rdist(rng))*w.periods()[0] + real_type(rdist(rng))*w.periods()[1]);
+                auto lnsigma_real = w.ln_sigma_real(z);
+                auto lnsigma_imag = w.ln_sigma_imag(z);
+                auto lnsigma = w.ln_sigma(z);
+                auto err = std::abs((std::exp(lnsigma)-std::exp(complex_type(lnsigma_real,lnsigma_imag)))/std::exp(lnsigma));
+                if (err > max_err) {
+                    max_err = err;
+                    max_g2 = g2;
+                    max_g3 = g3;
+                    max_z = z;
+                }
+                acc_err += err;
+                ++counter;
+            }
+        }
+        std::cout << "\tMax log(sigma) error: " << max_err << " @ [g2=" << max_g2 << ",g3=" << max_g3 << ",z=" << max_z << "]\n";
+        std::cout << "\tAverage log(sigma) error: " << acc_err / real_type(counter) << '\n';
+    }
+};
+
+BOOST_AUTO_TEST_CASE(test_10)
+{
+    std::cout << "Testing the computation of real/imag of log(sigma)\n";
+    std::cout << "==================================================\n";
+    boost::mpl::for_each<real_types>(tester_10());
+    std::cout << "\n\n\n";
+}
+

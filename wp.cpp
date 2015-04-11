@@ -9,7 +9,7 @@ using namespace w_elliptic;
 int main()
 {
     std::cout << std::setprecision(15) << '\n';
-    we<double> w(4,.4);
+    we<double> w(.4,4);
     std::cout << w << '\n';
 //     std::cout << w_elliptic<long double>(2.,.1) << '\n';
 //     std::cout << w_elliptic<long double>(2.,-.1) << '\n';
@@ -24,7 +24,9 @@ int main()
 
 
 // std::cout << std::exp(w.ln_sigma(std::complex<double>(1.,-.3))) << '\n';
-std::cout << std::exp(w.ln_sigma(std::complex<double>(1.,-.3))) << '\n';
+std::cout << w.ln_sigma(std::complex<double>(12.2,.3)) << '\n';
+std::cout << w.ln_sigma_real_cont(std::complex<double>(12.2,.3)) << '\n';
+std::cout << w.ln_sigma_imag_cont(std::complex<double>(12.2,.3)) << '\n';
 
 
 //     return 0;

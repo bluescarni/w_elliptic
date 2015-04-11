@@ -752,16 +752,62 @@ class we
             retval += real_type(2) * (cred + N*m_periods[0]/real_type(2) + M*m_periods[1]/real_type(2)) * (N*m_etas[0] + M*m_etas[1]);
             return retval;
         }
+        real_type ln_sigma_imag_cont(const complex_type &c) const
+        {
+            const real_type om1 = m_periods[0].real()/real_type(2);
+            // Reduce to the fundamental real period.
+            real_type N(std::floor(c.real()/m_periods[0].real()));
+            complex_type cred_F(c.real() - N*m_periods[0].real(),c.imag());
+            // Perform the expansion.
+            complex_type arg = pi_const * cred_F / m_periods[0].real();
+            const real_type a = arg.real(), b = arg.imag();
+            real_type retval = m_etas[0].real() * real_type(2) * cred_F.real()* cred_F.imag() / m_periods[0].real()
+                + std::log(std::sin(pi_const*cred_F/m_periods[0].real())).imag();
+            std::size_t i = 1u, miter = max_iter + 1u;
+            // NOTE: here the sincos function might be useful.
+            real_type C = std::cos(a), S = std::sin(a), Cn(1), Sn(0), Ch = std::cosh(b), Sh = std::sinh(b), Chn(1), Shn(0);
+            real_type tmp_s, tmp_c, tmp_sh, tmp_ch, mul;
+            while (true) {
+                if (i == miter) {
+                    std::cout << "WARNING max_iter reached\n";
+                    break;
+                }
+                // These are just the addition formulae for trig and hyperbolic functions.
+                tmp_s = Sn*C+Cn*S;
+                tmp_c = Cn*C-Sn*S;
+                tmp_sh = Shn*Ch+Chn*Sh;
+                tmp_ch = Chn*Ch+Shn*Sh;
+                Sn = tmp_s;
+                Cn = tmp_c;
+                Shn = tmp_sh;
+                Chn = tmp_ch;
+                mul = real_type(8)*Sn*Cn*Shn*Chn;
+                real_type add = ls_c(i) * mul;
+                retval += add;
+                if (std::abs(add/retval) <= detail::tolerance<real_type>()) {
+                    break;
+                }
+                ++i;
+            }
+            // Add the homogeneity relations.
+            retval += real_type(2)*N*m_etas[0].real()*cred_F.imag() - N*pi_const;
+            return retval;
+        }
         complex_type sigma(const complex_type &c) const
         {
             return std::exp(ln_sigma(c));
         }
-        real_type ln_sigma_real(const complex_type &c) const
+        real_type ln_sigma_real_cont(const complex_type &c) const
         {
-            complex_type arg = pi_const * c / m_periods[0].real();
+            const real_type om1 = m_periods[0].real()/real_type(2);
+            // Reduce to the fundamental real period.
+            real_type N(std::floor(c.real()/m_periods[0].real()));
+            complex_type cred_F(c.real() - N*m_periods[0].real(),c.imag());
+            // Perform the expansion.
+            complex_type arg = pi_const * cred_F / m_periods[0].real();
             const real_type a = arg.real(), b = arg.imag();
-            real_type retval = std::log(m_periods[0].real()/pi_const) + m_etas[0].real() * (c.real()*c.real()-c.imag()*c.imag()) / m_periods[0].real()
-                + std::log(std::sin(pi_const*c/m_periods[0].real())).real();
+            real_type retval = std::log(m_periods[0].real()/pi_const) + m_etas[0].real() * (cred_F.real()*cred_F.real()-cred_F.imag()*cred_F.imag()) / m_periods[0].real()
+                + std::log(std::sin(pi_const*cred_F/m_periods[0].real())).real();
             std::size_t i = 1u, miter = max_iter + 1u;
             // NOTE: here the sincos function might be useful.
             real_type C = std::cos(a), S = std::sin(a), Cn(1), Sn(0), Ch = std::cosh(b), Sh = std::sinh(b), Chn(1), Shn(0);
@@ -788,7 +834,23 @@ class we
                 }
                 ++i;
             }
+            // Add the homogeneity relations.
+            retval += real_type(2)*N*m_etas[0].real()*(cred_F.real() + N*om1);
             return retval;
+        }
+        real_type ln_sigma_real(const complex_type &c) const
+        {
+            if (c.imag() >= real_type(0) && c.imag() <= m_periods[1].imag()/real_type(2)) {
+                return ln_sigma_real_cont(c);
+            }
+            return ln_sigma(c).real();
+        }
+        real_type ln_sigma_imag(const complex_type &c) const
+        {
+            if (c.imag() >= real_type(0) && c.imag() <= m_periods[1].imag()/real_type(2)) {
+                return ln_sigma_imag_cont(c);
+            }
+            return ln_sigma(c).imag();
         }
         complex_type Pinv(const complex_type &c) const
         {
