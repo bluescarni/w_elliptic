@@ -100,8 +100,26 @@ auto tolerance() -> decltype(detail::tolerance_impl<T>()())
     return detail::tolerance_impl<T>()();
 }
 
+// Number of decimal digits to print in the representation of the class.
+template <typename T>
+int digits10()
+{
+    // NOTE: print extra 2 digits - apparently this should be enough to guarantee exact
+    // conversion to/from string form.
+    return std::numeric_limits<T>::digits10 + 2;
 }
 
+}
+
+// TODO:
+// - maybe quicker calculation of error for complex: instead of abs(), just a**2+b**2;
+// - use the iteration counter also in the non-laurent expansions,
+// - Pinv should return 2 values, the first one with the smallest imaginary part,
+// - testing in the fundamental cell,
+// - disallow Delta = 0 for now,
+// - tests with pathological values (e.g., z = 0, z close to cell border, etc.),
+// - write functions that return two or three things at once (that is, P+Pprime, P+Pprime+zet),
+// - would be nice to compute Pprime directly from P anyway.
 template <typename T>
 class we
 {
@@ -376,12 +394,18 @@ class we
         {
             return m_etas;
         }
+        const real_type &Delta() const
+        {
+            return m_delta;
+        }
+        const complex_type &q() const
+        {
+            return m_q;
+        }
         friend std::ostream &operator<<(std::ostream &os, const we &w)
         {
             std::ostringstream oss;
-            // NOTE: print extra 2 digits - apparently this should be enough to guarantee exact
-            // conversion to/from string form.
-            oss << std::setprecision(std::numeric_limits<real_type>::digits10 + 2);
+            oss << std::setprecision(detail::digits10<real_type>());
             oss << "Invariants: [" << w.m_invariants[0] << ',' << w.m_invariants[1] << "]\n";
             oss << "Delta: " << w.m_delta << '\n';
             oss << "Roots: [" << w.m_roots[0] << ',' << w.m_roots[1] << ',' << w.m_roots[2] << "]\n";

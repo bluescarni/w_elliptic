@@ -36,11 +36,43 @@
 #include <boost/python/class.hpp>
 #include <boost/python/module.hpp>
 #include <boost/python/operators.hpp>
+#include <boost/python/tuple.hpp>
 
 #include "../src/w_elliptic.hpp"
 
 namespace bp = boost::python;
 using namespace w_elliptic;
+
+// Wrappers for the getters.
+template <typename T>
+static inline bp::tuple get_invariants(const we<T> &w)
+{
+    return bp::make_tuple(w.invariants()[0],w.invariants()[1]);
+}
+
+template <typename T>
+static inline bp::tuple get_periods(const we<T> &w)
+{
+    return bp::make_tuple(w.periods()[0],w.periods()[1]);
+}
+
+template <typename T>
+static inline bp::tuple get_roots(const we<T> &w)
+{
+    return bp::make_tuple(w.roots()[0],w.roots()[1],w.roots()[2]);
+}
+
+template <typename T>
+static inline T get_Delta(const we<T> &w)
+{
+    return w.Delta();
+}
+
+template <typename T>
+static inline typename we<T>::complex_type get_q(const we<T> &w)
+{
+    return w.q();
+}
 
 BOOST_PYTHON_MODULE(_core)
 {
@@ -50,7 +82,7 @@ BOOST_PYTHON_MODULE(_core)
     typedef real_type (we_type::*real_1)(const real_type &) const;
     typedef complex_type (we_type::*complex_1)(const complex_type &) const;
 
-    bp::class_<we_type> we_class("we",bp::init<const double &, const double &>());
+    bp::class_<we_type> we_class("we",bp::init<const real_type &, const real_type &>());
     we_class.def(repr(bp::self));
     // First complex, then real - otherwise the Boost Python overload mechanism always
     // picks the complex part first.
@@ -64,4 +96,11 @@ BOOST_PYTHON_MODULE(_core)
     we_class.def("ln_sigma",&we_type::ln_sigma);
     we_class.def("ln_sigma_real_cont",&we_type::ln_sigma_real_cont);
     we_class.def("ln_sigma_imag_cont",&we_type::ln_sigma_imag_cont);
+
+    // Getters.
+    we_class.add_property("invariants",get_invariants<real_type>);
+    we_class.add_property("periods",get_periods<real_type>);
+    we_class.add_property("roots",get_roots<real_type>);
+    we_class.add_property("Delta",get_Delta<real_type>);
+    we_class.add_property("q",get_q<real_type>);
 }
