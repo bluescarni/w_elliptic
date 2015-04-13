@@ -90,6 +90,7 @@ BOOST_PYTHON_MODULE(_core)
     we_class.def("P",real_1(&we_type::P));
     we_class.def("Pprime",complex_1(&we_type::Pprime));
     we_class.def("Pprime",real_1(&we_type::Pprime));
+    we_class.def("Pinv",&we_type::Pinv);
     we_class.def("zeta",complex_1(&we_type::zeta));
     we_class.def("zeta",real_1(&we_type::zeta));
     we_class.def("sigma",&we_type::sigma);
