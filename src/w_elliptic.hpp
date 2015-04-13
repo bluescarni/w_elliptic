@@ -647,7 +647,7 @@ class we
                 }
                 U add(ck(i) * tmp);
                 retval += add;
-                if (std::abs(add/retval) <= detail::tolerance<U>()) {
+                if ((std::abs(retval) == real_type(0) && std::abs(add) <= detail::tolerance<U>()) || std::abs(add/retval) <= detail::tolerance<U>()) {
                     ++counter;
                     if (counter == 3u) {
                         break;
@@ -674,7 +674,7 @@ class we
                 }
                 U add((U(2)*U(i) - U(2))*ck(i) * tmp);
                 retval += add;
-                if (std::abs(add/retval) <= detail::tolerance<U>()) {
+                if ((std::abs(retval) == real_type(0) && std::abs(add) <= detail::tolerance<U>()) || std::abs(add/retval) <= detail::tolerance<U>()) {
                     ++counter;
                     if (counter == 3u) {
                         break;
@@ -700,7 +700,7 @@ class we
                 }
                 U sub(ck(i) * tmp/(U(2)*U(i) - U(1)));
                 retval -= sub;
-                if (std::abs(sub/retval) <= detail::tolerance<U>()) {
+                if ((std::abs(retval) == real_type(0) && std::abs(sub) <= detail::tolerance<U>()) || std::abs(sub/retval) <= detail::tolerance<U>()) {
                     ++counter;
                     if (counter == 3u) {
                         break;
@@ -738,7 +738,7 @@ class we
             // Perform the expansion.
             complex_type arg = pi_const * cred_F / m_periods[0].real(), S = std::sin(arg), C = std::cos(arg), Sn(real_type(0)), Cn(real_type(1));
             complex_type retval = std::log(m_periods[0].real()/pi_const) + m_etas[0].real()  / m_periods[0].real() * (cred_F * cred_F) + std::log(S);
-            std::size_t i = 1u, miter = max_iter + 1u;
+            std::size_t i = 1u, miter = max_iter + 1u, counter = 0u;
             complex_type tmp_s, tmp_c, mul;
             while (true) {
                 if (i == miter) {
@@ -754,8 +754,13 @@ class we
                 mul *= real_type(4);
                 complex_type add = ls_c(i) * mul;
                 retval += add;
-                if (std::abs(add/retval) <= detail::tolerance<complex_type>()) {
-                    break;
+                if ((std::abs(retval) == real_type(0) && std::abs(add) <= detail::tolerance<complex_type>()) || std::abs(add/retval) <= detail::tolerance<complex_type>()) {
+                    ++counter;
+                    if (counter == 2u) {
+                        break;
+                    }
+                } else {
+                    counter = 0u;
                 }
                 ++i;
             }
@@ -794,7 +799,7 @@ class we
             const real_type a = arg.real(), b = arg.imag();
             real_type retval = m_etas[0].real() * real_type(2) * cred_F.real()* cred_F.imag() / m_periods[0].real()
                 + std::log(std::sin(pi_const*cred_F/m_periods[0].real())).imag();
-            std::size_t i = 1u, miter = max_iter + 1u;
+            std::size_t i = 1u, miter = max_iter + 1u, counter = 0u;
             // NOTE: here the sincos function might be useful.
             real_type C = std::cos(a), S = std::sin(a), Cn(1), Sn(0), Ch = std::cosh(b), Sh = std::sinh(b), Chn(1), Shn(0);
             real_type tmp_s, tmp_c, tmp_sh, tmp_ch, mul;
@@ -815,8 +820,13 @@ class we
                 mul = real_type(8)*Sn*Cn*Shn*Chn;
                 real_type add = ls_c(i) * mul;
                 retval += add;
-                if (std::abs(add/retval) <= detail::tolerance<real_type>()) {
-                    break;
+                if ((std::abs(retval) == real_type(0) && std::abs(add) <= detail::tolerance<real_type>()) || std::abs(add/retval) <= detail::tolerance<real_type>()) {
+                    ++counter;
+                    if (counter == 2u) {
+                        break;
+                    }
+                } else {
+                    counter = 0u;
                 }
                 ++i;
             }
@@ -839,7 +849,7 @@ class we
             const real_type a = arg.real(), b = arg.imag();
             real_type retval = std::log(m_periods[0].real()/pi_const) + m_etas[0].real() * (cred_F.real()*cred_F.real()-cred_F.imag()*cred_F.imag()) / m_periods[0].real()
                 + std::log(std::sin(pi_const*cred_F/m_periods[0].real())).real();
-            std::size_t i = 1u, miter = max_iter + 1u;
+            std::size_t i = 1u, miter = max_iter + 1u, counter = 0u;
             // NOTE: here the sincos function might be useful.
             real_type C = std::cos(a), S = std::sin(a), Cn(1), Sn(0), Ch = std::cosh(b), Sh = std::sinh(b), Chn(1), Shn(0);
             real_type tmp_s, tmp_c, tmp_sh, tmp_ch, mul;
@@ -860,8 +870,13 @@ class we
                 mul *= real_type(4);
                 real_type add = ls_c(i) * mul;
                 retval += add;
-                if (std::abs(add/retval) <= detail::tolerance<real_type>()) {
-                    break;
+                if ((std::abs(retval) == real_type(0) && std::abs(add) <= detail::tolerance<real_type>()) || std::abs(add/retval) <= detail::tolerance<real_type>()) {
+                    ++counter;
+                    if (counter == 2u) {
+                        break;
+                    }
+                } else {
+                    counter = 0u;
                 }
                 ++i;
             }
