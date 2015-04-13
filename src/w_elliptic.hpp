@@ -961,6 +961,11 @@ class we
                 retval -= m_periods[1];
                 retval = complex_type(retval.real(),real_type(0));
             }
+            // Pick the value with the smallest imaginary part.
+            auto alt_retval = -retval + m_periods[0] + m_periods[1];
+            if (alt_retval.imag() < retval.imag()) {
+                retval = alt_retval;
+            }
             return retval;
         }
     private:
