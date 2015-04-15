@@ -564,7 +564,7 @@ struct tester_09
             we<real_type> w(g2,g3);
             for (decltype(v.size()) j = 2u; j < v.size(); j += 4u) {
                 complex_from_str(c,v[j],v[j + 1u]);
-                P = w.sigma(c);
+                P = w.sigma__(c);
                 complex_from_str(P_comp,v[j + 2u],v[j + 3u]);
                 if (std::abs((P-P_comp)/P_comp) > max_P_err) {
                     max_P_err = std::abs((P-P_comp)/P_comp);

@@ -359,6 +359,37 @@ class we
                 tmp *= q2;
             }
         }
+        // Coefficients of the expansions of theta functions used in the computation of sigma.
+        void setup_sigma()
+        {
+            for (std::size_t i = 0u; i < max_iter; ++i) {
+                m_sigma_c[i] = std::pow(m_q,real_type(i)*(real_type(i) + real_type(1))).real();
+                if (i % 2u) {
+                    m_sigma_c[i] = -m_sigma_c[i];
+                }
+            }
+            // Compute the denominator of the expression of sigma via theta.
+            real_type retval(0);
+            std::size_t i = 0u, counter = 0u;
+            while (true) {
+                 if (i == max_iter) {
+                    std::cout << "WARNING max_iter reached\n";
+                    break;
+                }
+                real_type add = (real_type(2)*real_type(i) + real_type(1)) * m_sigma_c[i];
+                retval += add;
+                if ((std::abs(retval) == real_type(0) && std::abs(add) <= detail::tolerance<real_type>()) || std::abs(add/retval) <= detail::tolerance<real_type>()) {
+                    ++counter;
+                    if (counter == 2u) {
+                        break;
+                    }
+                } else {
+                    counter = 0u;
+                }
+                ++i;
+            }
+            m_sigma_den = retval * pi_const;
+        }
     public:
         // TODO:
         // - finiteness checks,
@@ -377,6 +408,8 @@ class we
             m_etas[1u] = zeta_dup(m_periods[1]/real_type(2));
             // Setup q and related.
             setup_q();
+            // Setup the quantities for the computation of sigma.
+            setup_sigma();
         }
         const std::array<complex_type,3> &roots() const
         {
@@ -983,6 +1016,81 @@ class we
             }
             return retval;
         }
+        real_type sigma_(const real_type &x) const
+        {
+            const real_type arg = pi_const * x / m_periods[0].real();
+            // TODO: use sincos?
+            const real_type C = std::cos(arg), S = std::sin(arg), S2 = real_type(2)*S*C, C2 = C*C-S*S;
+            real_type Cn(C), Sn(S), tmp_s, tmp_c;
+            real_type retval(0);
+            std::size_t i = 0u, counter = 0u;
+            while (true) {
+                 if (i == max_iter) {
+                    std::cout << "WARNING max_iter reached\n";
+                    break;
+                }
+                real_type add(m_sigma_c[i]);
+                add *= Sn;
+                retval += add;
+                if ((std::abs(retval) == real_type(0) && std::abs(add) <= detail::tolerance<real_type>()) || std::abs(add/retval) <= detail::tolerance<real_type>()) {
+                    ++counter;
+                    if (counter == 2u) {
+                        break;
+                    }
+                } else {
+                    counter = 0u;
+                }
+                ++i;
+                tmp_s = Sn*C2+Cn*S2;
+                tmp_c = Cn*C2-Sn*S2;
+                Sn = tmp_s;
+                Cn = tmp_c;
+            }
+            // The rest.
+            retval /= m_sigma_den;
+            retval *= m_periods[0].real();
+            retval *= std::exp(m_etas[0].real()*x*x/m_periods[0].real());
+            return retval;
+        }
+        complex_type sigma__(const complex_type &x) const
+        {
+            const complex_type arg = pi_const * x / m_periods[0].real();
+            // TODO: use sincos?
+            const complex_type C = std::cos(arg), S = std::sin(arg), S2 = complex_type(2)*S*C, C2 = C*C-S*S;
+            complex_type Cn(C), Sn(S), tmp_s, tmp_c;
+            complex_type retval(0);
+            std::size_t i = 0u, counter = 0u;
+            while (true) {
+                 if (i == max_iter) {
+                    std::cout << "WARNING max_iter reached\n";
+                    break;
+                }
+                complex_type add(m_sigma_c[i]);
+                add *= Sn;
+                retval += add;
+                if (!std::isfinite(retval.real()) || !std::isfinite(retval.imag())) {
+                    break;
+                }
+                if ((std::abs(retval) == real_type(0) && std::abs(add) <= detail::tolerance<complex_type>()) || std::abs(add/retval) <= detail::tolerance<complex_type>()) {
+                    ++counter;
+                    if (counter == 2u) {
+                        break;
+                    }
+                } else {
+                    counter = 0u;
+                }
+                ++i;
+                tmp_s = Sn*C2+Cn*S2;
+                tmp_c = Cn*C2-Sn*S2;
+                Sn = tmp_s;
+                Cn = tmp_c;
+            }
+            // The rest.
+            retval /= m_sigma_den;
+            retval *= m_periods[0].real();
+            retval *= std::exp(m_etas[0].real()*x*x/m_periods[0].real());
+            return retval;
+        }
     private:
         std::array<real_type,2>         m_invariants;
         real_type                       m_delta;
@@ -993,6 +1101,8 @@ class we
         std::array<complex_type,2>      m_etas;
         complex_type                    m_q;
         std::array<real_type,max_iter>  m_ln_sigma_c;
+        std::array<real_type,max_iter>  m_sigma_c;
+        real_type                       m_sigma_den;
 };
 
 template <typename T>
