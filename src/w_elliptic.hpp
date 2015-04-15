@@ -109,6 +109,18 @@ int digits10()
     return std::numeric_limits<T>::digits10 + 2;
 }
 
+template <typename T>
+bool isfinite(const T &x)
+{
+    return std::isfinite(x);
+}
+
+template <typename T>
+bool isfinite(const std::complex<T> &c)
+{
+    return isfinite(c.real()) && isfinite(c.imag());
+}
+
 }
 
 // TODO:
@@ -208,6 +220,8 @@ class we
             U a((x + y)/U(2)), g(std::sqrt(x*y));
             std::size_t i = 0u;
             while (true) {
+                // NOTE: here it seems that the values of a/g are always around unity,
+                // so we should not need to deal with relative tolerance.
                 if (std::abs(a - g) <= detail::tolerance<U>()) {
                     break;
                 }
@@ -359,6 +373,24 @@ class we
                 tmp *= q2;
             }
         }
+        template <std::size_t Limit, typename U>
+        static bool stop_check(const U &acc, const U &delta, std::size_t &counter)
+        {
+            if (!detail::isfinite(acc)) {
+                return true;
+            }
+            if ((std::abs(acc) == real_type(0) && std::abs(delta) <= detail::tolerance<U>()) ||
+                std::abs(delta/acc) <= detail::tolerance<U>())
+            {
+                ++counter;
+                if (counter == Limit) {
+                    return true;
+                }
+            } else {
+                counter = 0u;
+            }
+            return false;
+        }
         // Coefficients of the expansions of theta functions used in the computation of sigma.
         void setup_sigma()
         {
@@ -378,13 +410,8 @@ class we
                 }
                 real_type add = (real_type(2)*real_type(i) + real_type(1)) * m_sigma_c[i];
                 retval += add;
-                if ((std::abs(retval) == real_type(0) && std::abs(add) <= detail::tolerance<real_type>()) || std::abs(add/retval) <= detail::tolerance<real_type>()) {
-                    ++counter;
-                    if (counter == 2u) {
-                        break;
-                    }
-                } else {
-                    counter = 0u;
+                if (stop_check<2>(retval,add,counter)) {
+                    break;
                 }
                 ++i;
             }
@@ -680,13 +707,8 @@ class we
                 }
                 U add(ck(i) * tmp);
                 retval += add;
-                if ((std::abs(retval) == real_type(0) && std::abs(add) <= detail::tolerance<U>()) || std::abs(add/retval) <= detail::tolerance<U>()) {
-                    ++counter;
-                    if (counter == 3u) {
-                        break;
-                    }
-                } else {
-                    counter = 0u;
+                if (stop_check<3>(retval,add,counter)) {
+                    break;
                 }
                 tmp *= z2;
                 ++i;
@@ -707,13 +729,8 @@ class we
                 }
                 U add((U(2)*U(i) - U(2))*ck(i) * tmp);
                 retval += add;
-                if ((std::abs(retval) == real_type(0) && std::abs(add) <= detail::tolerance<U>()) || std::abs(add/retval) <= detail::tolerance<U>()) {
-                    ++counter;
-                    if (counter == 3u) {
-                        break;
-                    }
-                } else {
-                    counter = 0u;
+                if (stop_check<3>(retval,add,counter)) {
+                    break;
                 }
                 tmp *= z2;
                 ++i;
@@ -733,13 +750,8 @@ class we
                 }
                 U sub(ck(i) * tmp/(U(2)*U(i) - U(1)));
                 retval -= sub;
-                if ((std::abs(retval) == real_type(0) && std::abs(sub) <= detail::tolerance<U>()) || std::abs(sub/retval) <= detail::tolerance<U>()) {
-                    ++counter;
-                    if (counter == 3u) {
-                        break;
-                    }
-                } else {
-                    counter = 0u;
+                if (stop_check<3>(retval,sub,counter)) {
+                    break;
                 }
                 tmp *= z2;
                 ++i;
@@ -787,13 +799,8 @@ class we
                 mul *= real_type(4);
                 complex_type add = ls_c(i) * mul;
                 retval += add;
-                if ((std::abs(retval) == real_type(0) && std::abs(add) <= detail::tolerance<complex_type>()) || std::abs(add/retval) <= detail::tolerance<complex_type>()) {
-                    ++counter;
-                    if (counter == 2u) {
-                        break;
-                    }
-                } else {
-                    counter = 0u;
+                if (stop_check<2>(retval,add,counter)) {
+                    break;
                 }
                 ++i;
             }
@@ -853,13 +860,8 @@ class we
                 mul = real_type(8)*Sn*Cn*Shn*Chn;
                 real_type add = ls_c(i) * mul;
                 retval += add;
-                if ((std::abs(retval) == real_type(0) && std::abs(add) <= detail::tolerance<real_type>()) || std::abs(add/retval) <= detail::tolerance<real_type>()) {
-                    ++counter;
-                    if (counter == 2u) {
-                        break;
-                    }
-                } else {
-                    counter = 0u;
+                if (stop_check<2>(retval,add,counter)) {
+                    break;
                 }
                 ++i;
             }
@@ -903,13 +905,8 @@ class we
                 mul *= real_type(4);
                 real_type add = ls_c(i) * mul;
                 retval += add;
-                if ((std::abs(retval) == real_type(0) && std::abs(add) <= detail::tolerance<real_type>()) || std::abs(add/retval) <= detail::tolerance<real_type>()) {
-                    ++counter;
-                    if (counter == 2u) {
-                        break;
-                    }
-                } else {
-                    counter = 0u;
+                if (stop_check<2>(retval,add,counter)) {
+                    break;
                 }
                 ++i;
             }
@@ -1032,13 +1029,8 @@ class we
                 real_type add(m_sigma_c[i]);
                 add *= Sn;
                 retval += add;
-                if ((std::abs(retval) == real_type(0) && std::abs(add) <= detail::tolerance<real_type>()) || std::abs(add/retval) <= detail::tolerance<real_type>()) {
-                    ++counter;
-                    if (counter == 2u) {
-                        break;
-                    }
-                } else {
-                    counter = 0u;
+                if (stop_check<2>(retval,add,counter)) {
+                    break;
                 }
                 ++i;
                 tmp_s = Sn*C2+Cn*S2;
@@ -1068,16 +1060,8 @@ class we
                 complex_type add(m_sigma_c[i]);
                 add *= Sn;
                 retval += add;
-                if (!std::isfinite(retval.real()) || !std::isfinite(retval.imag())) {
+                if (stop_check<2>(retval,add,counter)) {
                     break;
-                }
-                if ((std::abs(retval) == real_type(0) && std::abs(add) <= detail::tolerance<complex_type>()) || std::abs(add/retval) <= detail::tolerance<complex_type>()) {
-                    ++counter;
-                    if (counter == 2u) {
-                        break;
-                    }
-                } else {
-                    counter = 0u;
                 }
                 ++i;
                 tmp_s = Sn*C2+Cn*S2;
