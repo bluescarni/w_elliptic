@@ -131,7 +131,8 @@ bool isfinite(const std::complex<T> &c)
 // - disallow Delta = 0 for now,
 // - tests with pathological values (e.g., z = 0, z close to cell border, etc.),
 // - write functions that return two or three things at once (that is, P+Pprime, P+Pprime+zet),
-// - would be nice to compute Pprime directly from P anyway.
+// - would be nice to compute Pprime directly from P anyway,
+// - comparison with Elliptic functions from Boost.
 template <typename T>
 class we
 {
