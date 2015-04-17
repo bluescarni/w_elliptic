@@ -870,10 +870,6 @@ class we
             retval += real_type(2)*N*m_etas[0].real()*cred_F.imag() - N*pi_const;
             return retval;
         }
-        complex_type sigma(const complex_type &c) const
-        {
-            return std::exp(ln_sigma(c));
-        }
         real_type ln_sigma_real_cont(const complex_type &c) const
         {
             const real_type om1 = m_periods[0].real()/real_type(2);
@@ -1014,51 +1010,29 @@ class we
             }
             return retval;
         }
-        real_type sigma_(const real_type &x) const
+        real_type sigma(const real_type &x) const
         {
-            const real_type arg = pi_const * x / m_periods[0].real();
-            // TODO: use sincos?
-            const real_type C = std::cos(arg), S = std::sin(arg), S2 = real_type(2)*S*C, C2 = C*C-S*S;
-            real_type Cn(C), Sn(S), tmp_s, tmp_c;
-            real_type retval(0);
-            std::size_t i = 0u, counter = 0u;
-            while (true) {
-                 if (i == max_iter) {
-                    std::cout << "WARNING max_iter reached\n";
-                    break;
-                }
-                real_type add(m_sigma_c[i]);
-                add *= Sn;
-                retval += add;
-                if (stop_check<2>(retval,add,counter)) {
-                    break;
-                }
-                ++i;
-                tmp_s = Sn*C2+Cn*S2;
-                tmp_c = Cn*C2-Sn*S2;
-                Sn = tmp_s;
-                Cn = tmp_c;
-            }
-            // The rest.
-            retval /= m_sigma_den;
-            retval *= m_periods[0].real();
-            retval *= std::exp(m_etas[0].real()*x*x/m_periods[0].real());
-            return retval;
+            return sigma_impl(x);
         }
-        complex_type sigma__(const complex_type &x) const
+        complex_type sigma(const complex_type &c) const
         {
-            const complex_type arg = pi_const * x / m_periods[0].real();
+            return sigma_impl(c);
+        }
+        template <typename U>
+        U sigma_impl(const U &x) const
+        {
+            const U arg = pi_const * x / m_periods[0].real();
             // TODO: use sincos?
-            const complex_type C = std::cos(arg), S = std::sin(arg), S2 = complex_type(2)*S*C, C2 = C*C-S*S;
-            complex_type Cn(C), Sn(S), tmp_s, tmp_c;
-            complex_type retval(0);
+            const U C = std::cos(arg), S = std::sin(arg), S2 = real_type(2)*S*C, C2 = C*C-S*S;
+            U Cn(C), Sn(S), tmp_s, tmp_c;
+            U retval(0);
             std::size_t i = 0u, counter = 0u;
             while (true) {
                  if (i == max_iter) {
                     std::cout << "WARNING max_iter reached\n";
                     break;
                 }
-                complex_type add(m_sigma_c[i]);
+                U add(m_sigma_c[i]);
                 add *= Sn;
                 retval += add;
                 if (stop_check<2>(retval,add,counter)) {
