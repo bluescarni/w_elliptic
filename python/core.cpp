@@ -93,9 +93,8 @@ BOOST_PYTHON_MODULE(_core)
     we_class.def("Pinv",&we_type::Pinv);
     we_class.def("zeta",complex_1(&we_type::zeta));
     we_class.def("zeta",real_1(&we_type::zeta));
-    we_class.def("sigma",&we_type::sigma);
-    we_class.def("sigma_",&we_type::sigma_);
-    we_class.def("sigma__",&we_type::sigma__);
+    we_class.def("sigma",complex_1(&we_type::sigma));
+    we_class.def("sigma",real_1(&we_type::sigma));
     we_class.def("ln_sigma",&we_type::ln_sigma);
     we_class.def("ln_sigma_real_cont",&we_type::ln_sigma_real_cont);
     we_class.def("ln_sigma_imag_cont",&we_type::ln_sigma_imag_cont);

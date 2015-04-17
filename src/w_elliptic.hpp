@@ -132,7 +132,9 @@ bool isfinite(const std::complex<T> &c)
 // - tests with pathological values (e.g., z = 0, z close to cell border, etc.),
 // - write functions that return two or three things at once (that is, P+Pprime, P+Pprime+zet),
 // - would be nice to compute Pprime directly from P anyway,
-// - comparison with Elliptic functions from Boost.
+// - comparison with Elliptic functions from Boost,
+// - check the performance implications of cting floats from std::size_t in, e.g., Laurent
+//   expansions.
 template <typename T>
 class we
 {
@@ -728,7 +730,7 @@ class we
                     std::cout << "WARNING max_iter reached\n";
                     break;
                 }
-                U add((U(2)*U(i) - U(2))*ck(i) * tmp);
+                U add((U(2)*static_cast<real_type>(i) - U(2))*ck(i) * tmp);
                 retval += add;
                 if (stop_check<3>(retval,add,counter)) {
                     break;
@@ -749,7 +751,7 @@ class we
                     std::cout << "WARNING max_iter reached\n";
                     break;
                 }
-                U sub(ck(i) * tmp/(U(2)*U(i) - U(1)));
+                U sub(ck(i) * tmp/(U(2)*static_cast<real_type>(i) - U(1)));
                 retval -= sub;
                 if (stop_check<3>(retval,sub,counter)) {
                     break;

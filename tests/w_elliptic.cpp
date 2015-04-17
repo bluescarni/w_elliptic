@@ -476,7 +476,7 @@ struct tester_08
         complex_type max_P(real_type(0.),real_type(0.)), max_P_inv(max_P);
         unsigned long counter = 0;
         for (int i = 0; i < 20; ++i) {
-            real_type g2(g2dist(rng)), g3(g3dist(rng));
+            real_type g2(static_cast<real_type>(g2dist(rng))), g3(static_cast<real_type>(g3dist(rng)));
             we<real_type> w(g2,g3);
             for (int j = 0; j < 1000; ++j) {
                 complex_type P(real_type(rdist(rng)),real_type(rdist(rng)));
@@ -495,7 +495,7 @@ struct tester_08
         }
         // Add a couple of tests with g2/g3 == 0.
         for (int i = 0; i < 4; ++i) {
-            real_type g2(0), g3(g3dist(rng));
+            real_type g2(0), g3(static_cast<real_type>(g3dist(rng)));
             we<real_type> w(g2,g3);
             for (int j = 0; j < 1000; ++j) {
                 complex_type P(real_type(rdist(rng)),real_type(rdist(rng)));
@@ -513,7 +513,7 @@ struct tester_08
             }
         }
         for (int i = 0; i < 4; ++i) {
-            real_type g2(g2dist(rng)), g3(0);
+            real_type g2(static_cast<real_type>(g2dist(rng))), g3(0);
             we<real_type> w(g2,g3);
             for (int j = 0; j < 1000; ++j) {
                 complex_type P(real_type(rdist(rng)),real_type(rdist(rng)));
@@ -606,7 +606,7 @@ struct tester_10
         complex_type max_z(0);
         unsigned long counter = 0;
         for (int i = 0; i < 20; ++i) {
-            real_type g2(g2dist(rng)), g3(g3dist(rng));
+            real_type g2(static_cast<real_type>(g2dist(rng))), g3(static_cast<real_type>(g3dist(rng)));
             we<real_type> w(g2,g3);
             for (int j = 0; j < 1000; ++j) {
                 complex_type z(real_type(rdist(rng))*w.periods()[0] + real_type(rdist(rng))*w.periods()[1]);

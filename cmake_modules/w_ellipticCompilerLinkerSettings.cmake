@@ -85,7 +85,7 @@ if(CMAKE_COMPILER_IS_CLANGXX OR CMAKE_COMPILER_IS_GNUCXX OR CMAKE_COMPILER_IS_IN
     W_ELLIPTIC_CHECK_ENABLE_CXX_FLAG(-Wnon-virtual-dtor)
     W_ELLIPTIC_CHECK_ENABLE_CXX_FLAG(-Wnoexcept)
     W_ELLIPTIC_CHECK_ENABLE_CXX_FLAG(-Wlogical-op)
-    # W_ELLIPTIC_CHECK_ENABLE_CXX_FLAG(-Wconversion)
+    W_ELLIPTIC_CHECK_ENABLE_CXX_FLAG(-Wconversion)
     # NOTE: this can be useful, but at the moment it triggers lots of warnings.
     # W_ELLIPTIC_CHECK_ENABLE_CXX_FLAG(-Wold-style-cast)
     # NOTE: disable this for now, as it results in a lot of clutter from Boost.
