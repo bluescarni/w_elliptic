@@ -220,3 +220,31 @@ def test_09():
         retval.append([str(g2),str(g3)] + [str(item) for sublist in res for item in sublist])
     # Build the string.
     return "\n".join([','.join(t) for t in retval])
+
+# Test for real sigma.
+def test_11():
+    from mpmath import mp, mpc
+    import random
+    from weierstrass_elliptic import weierstrass_elliptic as we
+    random.seed(0)
+    mp.dps = 50
+    # Generate 20 random objects.
+    l = [we(random.uniform(-10,20),random.uniform(-10,10)) for _ in range(0,20)]
+    # Add a couple of cases wih g2/g3 = 0.
+    l.append(we(random.uniform(-10,20),0.))
+    l.append(we(random.uniform(-10,20),0.))
+    l.append(we(random.uniform(-10,20),0.))
+    l.append(we(0.,random.uniform(-10,10)))
+    l.append(we(0.,random.uniform(-10,10)))
+    l.append(we(0.,random.uniform(-10,10)))
+    retval = []
+    for w in l:
+        p1,p2 = w.periods
+        g2,g3 = w.invariants
+        # Generate 100 random values within 2 real periods.
+        z_list = [p1.real*random.uniform(-2,2) for _ in range(0,100)]
+        values_list = [w.sigma(_) for _ in z_list]
+        res = [(t[0],t[1].real) for t in zip(z_list,values_list)]
+        retval.append([str(g2),str(g3)] + [str(item) for sublist in res for item in sublist])
+    # Build the string.
+    return "\n".join([','.join(t) for t in retval])

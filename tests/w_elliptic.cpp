@@ -109,6 +109,7 @@ static std::vector<std::vector<std::string>> test_05_data = read_data("../tests/
 static std::vector<std::vector<std::string>> test_06_data = read_data("../tests/test_06_data.txt");
 static std::vector<std::vector<std::string>> test_07_data = read_data("../tests/test_07_data.txt");
 static std::vector<std::vector<std::string>> test_09_data = read_data("../tests/test_09_data.txt");
+static std::vector<std::vector<std::string>> test_11_data = read_data("../tests/test_11_data.txt");
 
 // RNG.
 static std::mt19937 rng;
@@ -637,3 +638,45 @@ BOOST_AUTO_TEST_CASE(test_10)
     std::cout << "\n\n\n";
 }
 
+struct tester_11
+{
+    template <typename RealType>
+    void operator()(const RealType &)
+    {
+        std::cout << "Testing type: " << typeid(RealType).name() << '\n';
+        using real_type = RealType;
+        real_type g2, g3, x, P, P_comp, max_P_err = 0, acc_P_err = 0;
+        size_type max_err_idx = 0;
+        std::string max_err_x, max_err_P;
+        for (size_type i = 0u; i < test_11_data.size(); ++i) {
+            const auto &v = test_11_data[i];
+            // Read the invariant values from mpmath.
+            real_from_str(g2,v[0]);
+            real_from_str(g3,v[1]);
+            // Build the W object.
+            we<real_type> w(g2,g3);
+            for (decltype(v.size()) j = 2u; j < v.size(); j += 2u) {
+                real_from_str(x,v[j]);
+                P = w.sigma(x);
+                real_from_str(P_comp,v[j + 1u]);
+                if (std::abs((P-P_comp)/P_comp) > max_P_err) {
+                    max_P_err = std::abs((P-P_comp)/P_comp);
+                    max_err_idx = i;
+                    max_err_x = v[j];
+                    max_err_P = v[j+1];
+                }
+                acc_P_err += std::abs((P-P_comp)/P_comp);
+            }
+        }
+        std::cout << "\tMax sigma error: " << max_P_err << " @ [g2=" << test_11_data[max_err_idx][0u] << ",g3=" << test_11_data[max_err_idx][1u] << ",x=" << max_err_x << ",sigma=" << max_err_P << "]\n";
+        std::cout << "\tAverage sigma error: " << acc_P_err / (real_type(test_11_data.size())*100) << '\n';
+    }
+};
+
+BOOST_AUTO_TEST_CASE(test_11)
+{
+    std::cout << "Testing the computation of real sigma\n";
+    std::cout << "=====================================\n";
+    boost::mpl::for_each<real_types>(tester_11());
+    std::cout << "\n\n\n";
+}
