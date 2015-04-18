@@ -134,7 +134,8 @@ bool isfinite(const std::complex<T> &c)
 // - would be nice to compute Pprime directly from P anyway,
 // - comparison with Elliptic functions from Boost,
 // - check the performance implications of cting floats from std::size_t in, e.g., Laurent
-//   expansions.
+//   expansions,
+// - proper handling of test files via cmake configure_file?
 template <typename T>
 class we
 {
@@ -362,7 +363,7 @@ class we
         // Setup the q constant and related quantities.
         void setup_q()
         {
-            m_q = std::pow(complex_type(-1,0),m_periods[1]/m_periods[0]);
+            m_q = std::pow(complex_type(-1,0),m_periods[1]/m_periods[0].real());
             // q is either pure real or pure imaginary.
             if (m_delta >= real_type(0)) {
                 m_q = complex_type(m_q.real(),real_type(0));
@@ -512,10 +513,10 @@ class we
             real_type alpha = std::get<0>(ab) - std::floor(std::get<0>(ab)),
                 beta = std::get<1>(ab) - std::floor(std::get<1>(ab));
 // std::cout << "ab=" << alpha << ',' << beta << '\n';
-            complex_type cred = m_periods[0] * alpha + m_periods[1] * beta;
+            complex_type cred = m_periods[0].real() * alpha + m_periods[1] * beta;
 // std::cout << "cred=" << cred << '\n';
             // Attempt a further reduction.
-            complex_type new_cred = -cred + m_periods[0] + m_periods[1];
+            complex_type new_cred = -cred + m_periods[0].real() + m_periods[1];
 // std::cout << "new_cred:" << new_cred << '\n';
             if (std::abs(new_cred) < std::abs(cred)) {
 // std::cout << "creeeeed\n";
@@ -574,11 +575,11 @@ class we
             real_type alpha = std::get<0>(ab) - std::floor(std::get<0>(ab)),
                 beta = std::get<1>(ab) - std::floor(std::get<1>(ab));
 // std::cout << "ab=" << alpha << ',' << beta << '\n';
-            complex_type cred = m_periods[0] * alpha + m_periods[1] * beta;
+            complex_type cred = m_periods[0].real() * alpha + m_periods[1] * beta;
 // std::cout << "cred=" << cred << '\n';
             // Attempt a further reduction.
             bool negate = false;
-            complex_type new_cred = -cred + m_periods[0] + m_periods[1];
+            complex_type new_cred = -cred + m_periods[0].real() + m_periods[1];
 // std::cout << "new_cred:" << new_cred << '\n';
             if (std::abs(new_cred) < std::abs(cred)) {
 // std::cout << "creeeeed\n";
@@ -653,10 +654,10 @@ class we
             auto ab = reduce_to_fc(c);
             real_type N = std::floor(std::get<0>(ab)), M = std::floor(std::get<1>(ab));
             real_type alpha = std::get<0>(ab) - N, beta = std::get<1>(ab) - M;
-            complex_type cred(m_periods[0] * alpha + m_periods[1] * beta);
+            complex_type cred(m_periods[0].real() * alpha + m_periods[1] * beta);
             // Attempt a further reduction.
             bool negate = false;
-            complex_type new_cred = -cred + m_periods[0] + m_periods[1];
+            complex_type new_cred = -cred + m_periods[0].real() + m_periods[1];
             if (std::abs(new_cred) < std::abs(cred)) {
                 negate = true;
                 cred = new_cred;
@@ -772,13 +773,13 @@ class we
         }
         complex_type ln_sigma_cont(const complex_type &c) const
         {
-            const complex_type om1 = m_periods[0]/real_type(2), om3 = m_periods[1]/real_type(2);
+            const complex_type om1 = m_periods[0].real()/real_type(2), om3 = m_periods[1]/real_type(2);
             auto cred(c);
             // Initial reduction to improve the convergence of the expansion.
             bool further_red = false;
             if (cred.imag() / m_periods[1].imag() > real_type(.5)) {
                 further_red = true;
-                cred = -cred + m_periods[0] + m_periods[1];
+                cred = -cred + m_periods[0].real() + m_periods[1];
             }
             // Reduce to the fundamental real period.
             real_type N(std::floor(cred.real()/m_periods[0].real()));
@@ -824,11 +825,11 @@ class we
             auto ab = reduce_to_fc(c);
             real_type N = std::floor(std::get<0>(ab)), M = std::floor(std::get<1>(ab));
             real_type alpha = std::get<0>(ab) - N, beta = std::get<1>(ab) - M;
-            complex_type cred(m_periods[0] * alpha + m_periods[1] * beta);
+            complex_type cred(m_periods[0].real() * alpha + m_periods[1] * beta);
             auto retval = ln_sigma_cont(cred);
             // NOTE: here the use of N and M is switched wrt the use in A+S.
             retval += complex_type(real_type(0),pi_const*(M+N+M*N));
-            retval += real_type(2) * (cred + N*m_periods[0]/real_type(2) + M*m_periods[1]/real_type(2)) * (N*m_etas[0] + M*m_etas[1]);
+            retval += real_type(2) * (cred + N*m_periods[0].real()/real_type(2) + M*m_periods[1]/real_type(2)) * (N*m_etas[0] + M*m_etas[1]);
             return retval;
         }
         real_type ln_sigma_imag_cont(const complex_type &c) const
@@ -993,7 +994,7 @@ class we
             auto ab = reduce_to_fc(retval);
             real_type alpha = std::get<0>(ab) - std::floor(std::get<0>(ab)),
                 beta = std::get<1>(ab) - std::floor(std::get<1>(ab));
-            retval = alpha * m_periods[0] + beta * m_periods[1];
+            retval = alpha * m_periods[0].real() + beta * m_periods[1];
             // The idea here is that we want to try to produce a purely real value if applicable, for use
             // in those applications where this is important (e.g., calculating the time of root passage
             // in Stark/Euler problems).
@@ -1006,7 +1007,7 @@ class we
                 retval = complex_type(retval.real(),real_type(0));
             }
             // Pick the value with the smallest imaginary part.
-            auto alt_retval = -retval + m_periods[0] + m_periods[1];
+            auto alt_retval = -retval + m_periods[0].real() + m_periods[1];
             if (alt_retval.imag() < retval.imag()) {
                 retval = alt_retval;
             }
