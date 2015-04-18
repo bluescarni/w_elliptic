@@ -136,6 +136,10 @@ bool isfinite(const std::complex<T> &c)
 // - check the performance implications of cting floats from std::size_t in, e.g., Laurent
 //   expansions,
 // - proper handling of test files via cmake configure_file?
+// - investigate Pprime around omega_i via Taylor expansion,
+// - move setup_q stuff into sigma_setup(),
+// - in series expansions, record the terms and re-accumulate them at the end in a way
+//   that minimises precision loss?
 template <typename T>
 class we
 {
