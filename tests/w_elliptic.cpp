@@ -680,3 +680,18 @@ BOOST_AUTO_TEST_CASE(test_11)
     boost::mpl::for_each<real_types>(tester_11());
     std::cout << "\n\n\n";
 }
+
+BOOST_AUTO_TEST_CASE(test_12)
+{
+    std::cout << std::setprecision(18);
+    we<double> w(1987895.2631983827,-539396800.47127712);
+    std::cout << w << '\n';
+    std::cout << w.Pprime(std::complex<double>(0.20245083798657967,0.0035114545342161546)) << '\n';
+    std::cout << w.P(std::complex<double>(0.20245083798657967,0.0035114545342161546)) << '\n';
+    //std::cout << w.sigma(std::complex<double>(0.20245083798657967,0.0035114545342161546)) << '\n';
+    we<double> w2(1.,-0.192450089644463113);
+    std::cout << w2 << '\n';
+    std::cout << w2.Pprime(std::complex<double>(7.60182650323291931,0.131851606091505841)) << '\n';
+    std::cout << w2.Pprime(std::complex<double>(7.60182650323291931,0)) << '\n';
+    std::cout << w2.Pprime(std::complex<double>(/*7.60182650323291931*/0,1.5)) << '\n';
+}
