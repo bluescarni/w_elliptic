@@ -74,6 +74,12 @@ static inline typename we<T>::complex_type get_q(const we<T> &w)
     return w.q();
 }
 
+template <typename T>
+static inline bp::tuple get_etas(const we<T> &w)
+{
+    return bp::make_tuple(w.etas()[0],w.etas()[1]);
+}
+
 BOOST_PYTHON_MODULE(_core)
 {
     using we_type = we<double>;
@@ -90,14 +96,13 @@ BOOST_PYTHON_MODULE(_core)
     we_class.def("P",real_1(&we_type::P));
     we_class.def("Pprime",complex_1(&we_type::Pprime));
     we_class.def("Pprime",real_1(&we_type::Pprime));
-    we_class.def("Pinv",&we_type::Pinv);
     we_class.def("zeta",complex_1(&we_type::zeta));
     we_class.def("zeta",real_1(&we_type::zeta));
     we_class.def("sigma",complex_1(&we_type::sigma));
     we_class.def("sigma",real_1(&we_type::sigma));
-    we_class.def("ln_sigma",&we_type::ln_sigma);
-    we_class.def("ln_sigma_real_cont",&we_type::ln_sigma_real_cont);
-    we_class.def("ln_sigma_imag_cont",&we_type::ln_sigma_imag_cont);
+    we_class.def("ln_sigma_real",&we_type::ln_sigma_real);
+    we_class.def("ln_sigma_imag",&we_type::ln_sigma_imag);
+    we_class.def("Pinv",&we_type::Pinv);
 
     // Getters.
     we_class.add_property("invariants",get_invariants<real_type>);
@@ -105,4 +110,5 @@ BOOST_PYTHON_MODULE(_core)
     we_class.add_property("roots",get_roots<real_type>);
     we_class.add_property("Delta",get_Delta<real_type>);
     we_class.add_property("q",get_q<real_type>);
+    we_class.add_property("etas",get_etas<real_type>);
 }

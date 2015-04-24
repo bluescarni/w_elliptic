@@ -613,7 +613,11 @@ struct tester_10
                 complex_type z(real_type(rdist(rng))*w.periods()[0] + real_type(rdist(rng))*w.periods()[1]);
                 auto lnsigma_real = w.ln_sigma_real(z);
                 auto lnsigma_imag = w.ln_sigma_imag(z);
-                auto lnsigma = w.ln_sigma(z);
+                auto tmp = w.sigma(z);
+                if (!detail::isfinite(tmp)) {
+                    continue;
+                }
+                auto lnsigma = std::log(tmp);
                 auto err = std::abs((std::exp(lnsigma)-std::exp(complex_type(lnsigma_real,lnsigma_imag)))/std::exp(lnsigma));
                 if (err > max_err) {
                     max_err = err;

@@ -125,7 +125,6 @@ bool isfinite(const std::complex<T> &c)
 
 // TODO:
 // - maybe quicker calculation of error for complex: instead of abs(), just a**2+b**2;
-// - use the iteration counter also in the non-laurent expansions,
 // - Pinv should return 2 values, the first one with the smallest imaginary part,
 // - testing in the fundamental cell,
 // - disallow Delta = 0 for now,
@@ -159,17 +158,7 @@ class we
         static_assert(std::is_constructible<real_type,int>::value,"The real type must be constructible from int.");
         static const std::size_t max_iter = 100u;
         static const real_type pi_const;
-        // Utilities to access the coefficients ck of the Laurent series expansions
-        // for the Weierstrassian functions.
-        const real_type &ck(const std::size_t &k) const
-        {
-            return m_ck_laurent[k - 2u];
-        }
-        real_type &ck(const std::size_t &k)
-        {
-            return m_ck_laurent[k - 2u];
-        }
-        // Same, for the ln sigma expansion.
+        // Coefficients for the ln sigma expansion.
         const real_type &ls_c(const std::size_t &k) const
         {
             return m_ln_sigma_c[k - 1u];
@@ -245,25 +234,6 @@ class we
             }
             return a;
         }
-        // Setup of the Laurent series coefficients: A+S 18.5.
-        void setup_laurent()
-        {
-            // Construct the coefficients of the Laurent expansions for P, P', etc.
-            // This will be c2.
-            ck(2u) = m_invariants[0]/real_type(20);
-            // c3.
-            ck(3u) = m_invariants[1]/real_type(28);
-            // The rest: A+S 18.5.3.
-            for (std::size_t k = 4u; k < max_iter + 2u; ++k) {
-                // Accumulator.
-                real_type acc(ck(2u) * ck(k - 2u));
-                for (std::size_t m = 3u; m <= k - 2u; ++m) {
-                    acc += ck(m) * ck(k - m);
-                }
-                acc *= real_type(3) / ((real_type(2)*real_type(k) + real_type(1)) * (real_type(k) - real_type(3)));
-                ck(k) = acc;
-            }
-        }
         // Complete elliptic integral of the first kind in terms of the modulus k.
         static complex_type K(const complex_type &k)
         {
@@ -333,36 +303,6 @@ class we
             }
             m_periods[0] = p1;
             m_periods[1] = p2;
-            // Store also the radius of convergence of the Laurent series of P, Pprime and zeta.
-            // See note at the end of A+S 18.5.
-            std::array<real_type,4> candidates = {{std::abs(p1),std::abs(p2),std::abs(p1+p2),std::abs(p1-p2)}};
-            m_conv_radius = *std::min_element(candidates.begin(),candidates.end());
-        }
-        // Duplication formula for P.
-        template <typename U, typename V>
-        static U duplicate_P(const U &Px, const V &g2, const V &g2_2, const V &g3)
-        {
-            U P2(Px*Px), P3(P2*Px), num(V(6)*P2 - g2_2);
-            num *= num;
-            return V(-2)*Px + num / (V(4)*(V(4)*P3-g2*Px-g3));
-        }
-        // Duplication formula for Pprime.
-        template <typename U, typename V>
-        static std::tuple<U,U> duplicate_Pprime(const U &Ppx, const U &Px, const V &g2, const V &g2_2, const V &g3)
-        {
-            U Ppp(V(6)*Px*Px-g2_2), tmp(Ppp/Ppx);
-            U retval = -Ppx;
-            retval -= (tmp*tmp*tmp)/U(4);
-            retval += (V(3)*Px*Ppp)/Ppx;
-            return std::make_tuple(std::move(retval),duplicate_P(Px,g2,g2_2,g3));
-        }
-        // Duplication formula for zeta.
-        template <typename U, typename V>
-        static std::tuple<U,U,U> duplicate_zeta(const U &zetax, const U &Ppx, const U &Px, const V &g2, const V &g2_2, const V &g3)
-        {
-            U Ppp(V(6)*Px*Px-g2_2);
-            auto dup_Pp = duplicate_Pprime(Ppx,Px,g2,g2_2,g3);
-            return std::make_tuple(U(2)*zetax+Ppp/(U(2)*Ppx),std::get<0>(dup_Pp),std::get<1>(dup_Pp));
         }
         // Setup the q constant and related quantities.
         void setup_q()
@@ -399,24 +339,104 @@ class we
             }
             return false;
         }
-        // Coefficients of the expansions of theta functions used in the computation of sigma.
+        void setup_thetas()
+        {
+            const bool q_real = m_q.real() != real_type(0);
+            const real_type qred = q_real ? m_q.real() : m_q.imag();
+            // theta_1 and derivatives.
+            for (std::size_t i = 0u; i < max_iter; ++i) {
+                // TODO static check on std::size_t limits here.
+                const std::size_t qpow = i*i + i;
+                const real_type fac = real_type(2)*real_type(i)+real_type(1);
+                const bool odd_i = i % 2u;
+                real_type q(std::pow(qred,real_type(qpow)));
+                // If q is pure imaginary and its power is not a multiple of 4, we need to flip the sign.
+                if (!q_real && qpow % 4u) {
+                    q = -q;
+                }
+                m_t1[i] = odd_i ? -q : q;
+                m_t1p[i] = odd_i ? -q*fac : q*fac;
+                m_t1ppp[i] = odd_i ? q*fac*fac*fac : -q*fac*fac*fac;
+            }
+            // theta_2 and derivative.
+            for (std::size_t i = 0u; i < max_iter; ++i) {
+                const std::size_t qpow = i*i + i;
+                const real_type fac = real_type(2)*real_type(i)+real_type(1);
+                real_type q(std::pow(qred,real_type(qpow)));
+                if (!q_real && qpow % 4u) {
+                    q = -q;
+                }
+                m_t2[i] = q;
+                m_t2p[i] = -q*fac;
+            }
+        }
+        // Setup P - see DLMF 23.6.5 and round.
+        void setup_P()
+        {
+            // First we need to understand which root e1 is such that P(omega_1) == e1.
+            auto it = std::min_element(m_roots.begin(),m_roots.end(),[this](const complex_type &c1, const complex_type &c2) -> bool {
+                auto Pi1 = this->Pinv(c1), Pi2 = this->Pinv(c2);
+                return std::abs(Pi1 - this->m_periods[0].real()/real_type(2)) < std::abs(Pi2 - this->m_periods[0].real()/real_type(2));
+            });
+            // TODO maybe check and throw here.
+            //assert(it->imag() == real_type(0));
+            m_e1 = it->real();
+            // Now we need to compute t3 * t4, which is equal to t1p/t2 according to the Jacobi identity DLMF 20.4.6.
+            // This allows us to compute everything in real.
+            real_type t1p(m_t1p[0]), t2(m_t2[0]);
+            bool stop1 = false, stop2 = false;
+            std::size_t i = 1u, counter1 = 0u, counter2 = 0u;
+            while (true) {
+                if (i == max_iter) {
+                    std::cout << "WARNING max_iter reached\n";
+                    break;
+                }
+                if (stop1 && stop2) {
+                    break;
+                }
+                if (!stop1) {
+                    real_type add1 = m_t1p[i];
+                    t1p += add1;
+                    if (stop_check<2>(t1p,add1,counter1)) {
+                        stop1 = true;
+                    }
+                }
+                if (!stop2) {
+                    real_type add2 = m_t2[i];
+                    t2 += add2;
+                    if (stop_check<2>(t2,add2,counter2)) {
+                        stop2 = true;
+                    }
+                }
+                ++i;
+            }
+            // Constant multiplicative factor for the computation of P.
+            // NOTE: here t2 cannot be zero, as in order to do so tau would need to be a purely real quantity.
+            m_Pfac = (pi_const * t1p/t2) / m_periods[0].real();
+            m_Pfac *= m_Pfac;
+        }
+        // Setup Pprime.
+        void setup_Pprime()
+        {
+            m_Pprimefac = m_Pfac * pi_const / (m_periods[0].real()/real_type(2));
+        }
+        void setup_zeta()
+        {
+            m_zetafac = pi_const/m_periods[0].real();
+            m_zetaadd = m_etas[0].real()/(m_periods[0].real()/real_type(2));
+        }
+        // Quantities to compute sigma via theta functions. See DLMF 23.6.9.
         void setup_sigma()
         {
-            for (std::size_t i = 0u; i < max_iter; ++i) {
-                m_sigma_c[i] = std::pow(m_q,real_type(i)*(real_type(i) + real_type(1))).real();
-                if (i % 2u) {
-                    m_sigma_c[i] = -m_sigma_c[i];
-                }
-            }
             // Compute the denominator of the expression of sigma via theta.
-            real_type retval(0);
-            std::size_t i = 0u, counter = 0u;
+            real_type retval(m_t1p[0]);
+            std::size_t i = 1u, counter = 0u;
             while (true) {
                  if (i == max_iter) {
                     std::cout << "WARNING max_iter reached\n";
                     break;
                 }
-                real_type add = (real_type(2)*real_type(i) + real_type(1)) * m_sigma_c[i];
+                real_type add = m_t1p[i];
                 retval += add;
                 if (stop_check<2>(retval,add,counter)) {
                     break;
@@ -425,417 +445,216 @@ class we
             }
             m_sigma_den = retval * pi_const;
         }
-    public:
-        // TODO:
-        // - finiteness checks,
-        // - handle special cases -> singularities in the cubic roots computations, infinite periods,
-        //   stuff like that.
-        explicit we(const real_type &g2, const real_type &g3):m_invariants{{g2,g3}}
+        // The eta constants. See DLMF 23.6.8.
+        void setup_etas()
         {
-            // Setup Laurent series coefficients.
-            setup_laurent();
-            // Calculation of the roots.
-            setup_roots(real_type(4),-g2,-g3);
-            // Computation of the periods.
-            setup_periods();
-            // Calculate the eta constants.
-            m_etas[0u] = zeta_dup(m_periods[0]/real_type(2)).real();
-            m_etas[1u] = zeta_dup(m_periods[1]/real_type(2));
-            // Setup q and related.
-            setup_q();
-            // Setup the quantities for the computation of sigma.
-            setup_sigma();
-        }
-        const std::array<complex_type,3> &roots() const
-        {
-            return m_roots;
-        }
-        const std::array<real_type,2> &invariants() const
-        {
-            return m_invariants;
-        }
-        const std::array<complex_type,2> &periods() const
-        {
-            return m_periods;
-        }
-        const std::array<complex_type,2> &etas() const
-        {
-            return m_etas;
-        }
-        const real_type &Delta() const
-        {
-            return m_delta;
-        }
-        const complex_type &q() const
-        {
-            return m_q;
-        }
-        friend std::ostream &operator<<(std::ostream &os, const we &w)
-        {
-            std::ostringstream oss;
-            oss << std::setprecision(detail::digits10<real_type>());
-            oss << "Invariants: [" << w.m_invariants[0] << ',' << w.m_invariants[1] << "]\n";
-            oss << "Delta: " << w.m_delta << '\n';
-            oss << "Roots: [" << w.m_roots[0] << ',' << w.m_roots[1] << ',' << w.m_roots[2] << "]\n";
-            oss << "Periods: [" << w.m_periods[0] << ',' << w.m_periods[1] << "]\n";
-            oss << "etas: [" << w.m_etas[0] << ',' << w.m_etas[1] << "]\n";
-            oss << "q: " << w.m_q << '\n';
-            os << oss.str();
-            return os;
-        }
-        real_type P(const real_type &x) const
-        {
-            const real_type g2 = m_invariants[0], g3 = m_invariants[1], g2_2 = g2/real_type(2);
-            real_type xred(x);
-            // P is an even function.
-            if (xred < real_type(0)) {
-                xred = -xred;
-            }
-            // Reduction of x to the fundamental cell.
-            xred = std::fmod(xred,m_periods[0].real());
-            // Further reduction.
-            if (xred > m_periods[0].real() / real_type(2)) {
-                xred = m_periods[0].real() - xred;
-            }
-            // Now we need to reduce xred to the radius of convergence of the Laurent series.
-            std::size_t n = 0u;
-            while (xred >= m_conv_radius / real_type(8)) {
-                xred /= real_type(2);
-                ++n;
-            }
-            real_type retval(P_laurent(xred));
-            for (std::size_t i = 0u; i < n; ++i) {
-                retval = duplicate_P(retval,g2,g2_2,g3);
-            }
-            return retval;
-        }
-        complex_type P(const complex_type &c) const
-        {
-            const real_type g2 = m_invariants[0], g3 = m_invariants[1], g2_2 = g2/real_type(2);
-            // Reduction of x to the fundamental cell.
-            auto ab = reduce_to_fc(c);
-            real_type alpha = std::get<0>(ab) - std::floor(std::get<0>(ab)),
-                beta = std::get<1>(ab) - std::floor(std::get<1>(ab));
-// std::cout << "ab=" << alpha << ',' << beta << '\n';
-            complex_type cred = m_periods[0].real() * alpha + m_periods[1] * beta;
-// std::cout << "cred=" << cred << '\n';
-            // Attempt a further reduction.
-            complex_type new_cred = -cred + m_periods[0].real() + m_periods[1];
-// std::cout << "new_cred:" << new_cred << '\n';
-            if (std::abs(new_cred) < std::abs(cred)) {
-// std::cout << "creeeeed\n";
-                cred = new_cred;
-            }
-            // Now we need to reduce cred to the radius of convergence of the Laurent series.
-            std::size_t n = 0u;
-            while (std::abs(cred) >= m_conv_radius / real_type(8)) {
-                cred /= real_type(2);
-                ++n;
-            }
-// std::cout << "n=" << n << '\n';
-            complex_type retval(P_laurent(cred));
-            for (std::size_t i = 0u; i < n; ++i) {
-                retval = duplicate_P(retval,g2,g2_2,g3);
-            }
-            return retval;
-        }
-        real_type Pprime(const real_type &x) const
-        {
-            const real_type g2 = m_invariants[0], g3 = m_invariants[1], g2_2 = g2/real_type(2);
-            real_type xred(x);
-            // Pprime is an odd function.
-            bool negate = false;
-            if (xred < real_type(0)) {
-                xred = -xred;
-                negate = !negate;
-            }
-            // Reduction of x to the fundamental cell.
-            xred = std::fmod(xred,m_periods[0].real());
-            // Further reduction.
-            if (xred > m_periods[0].real() / real_type(2)) {
-                xred = m_periods[0].real() - xred;
-                negate = !negate;
-            }
-            // Now we need to reduce xred to the radius of convergence of the Laurent series.
-            std::size_t n = 0u;
-            while (xred >= m_conv_radius / real_type(8)) {
-                xred /= real_type(2);
-                ++n;
-            }
-            auto retval = std::make_tuple(Pprime_laurent(xred),P_laurent(xred));
-            for (std::size_t i = 0u; i < n; ++i) {
-                retval = duplicate_Pprime(std::get<0>(retval),std::get<1>(retval),g2,g2_2,g3);
-            }
-            if (negate) {
-                return -std::get<0>(retval);
-            }
-            return std::get<0>(retval);
-        }
-        complex_type Pprime(const complex_type &c) const
-        {
-            const real_type g2 = m_invariants[0], g3 = m_invariants[1], g2_2 = g2/real_type(2);
-            // Reduction of x to the fundamental cell.
-            auto ab = reduce_to_fc(c);
-            real_type alpha = std::get<0>(ab) - std::floor(std::get<0>(ab)),
-                beta = std::get<1>(ab) - std::floor(std::get<1>(ab));
-// std::cout << "ab=" << alpha << ',' << beta << '\n';
-            complex_type cred = m_periods[0].real() * alpha + m_periods[1] * beta;
-// std::cout << "cred=" << cred << '\n';
-            // Attempt a further reduction.
-            bool negate = false;
-            complex_type new_cred = -cred + m_periods[0].real() + m_periods[1];
-// std::cout << "new_cred:" << new_cred << '\n';
-            if (std::abs(new_cred) < std::abs(cred)) {
-// std::cout << "creeeeed\n";
-                negate = true;
-                cred = new_cred;
-            }
-            // Now we need to reduce cred to the radius of convergence of the Laurent series.
-            std::size_t n = 0u;
-            while (std::abs(cred) >= m_conv_radius / real_type(8)) {
-                cred /= real_type(2);
-                ++n;
-            }
-// std::cout << "n=" << n << '\n';
-            auto retval = std::make_tuple(Pprime_laurent(cred),P_laurent(cred));
-            for (std::size_t i = 0u; i < n; ++i) {
-                retval = duplicate_Pprime(std::get<0>(retval),std::get<1>(retval),g2,g2_2,g3);
-            }
-            if (negate) {
-                return -std::get<0>(retval);
-            }
-            return std::get<0>(retval);
-        }
-        real_type zeta(const real_type &x) const
-        {
-            const real_type g2 = m_invariants[0], g3 = m_invariants[1], g2_2 = g2/real_type(2);
-            real_type xred(x);
-            // zeta is an odd function.
-            bool negate = false;
-            if (xred < real_type(0)) {
-                xred = -xred;
-                negate = true;
-            }
-            // Reduction to the fundamental cell.
-            real_type nf(0);
-            if (xred > m_periods[0].real()) {
-                nf = std::trunc(xred / m_periods[0].real());
-                xred -= m_periods[0].real() * nf;
-            }
-            bool negate2 = false;
-            // Further reduction.
-            real_type extra_red(0);
-            if (xred > m_periods[0].real() / real_type(2)) {
-                xred = m_periods[0].real() - xred;
-                negate2 = true;
-                extra_red = m_etas[0].real()*m_periods[0].real();
-            }
-            // Now we need to reduce xred to the radius of convergence of the Laurent series.
-            std::size_t n = 0u;
-            while (xred >= m_conv_radius / real_type(8)) {
-                xred /= real_type(2);
-                ++n;
-            }
-            // Laurent iteration.
-            auto retval = std::make_tuple(zeta_laurent(xred),Pprime_laurent(xred),P_laurent(xred));
-            for (std::size_t i = 0u; i < n; ++i) {
-                retval = duplicate_zeta(std::get<0>(retval),std::get<1>(retval),std::get<2>(retval),g2,g2_2,g3);
-            }
-            auto z_retval = std::get<0>(retval);
-            if (negate2) {
-                z_retval = -z_retval + real_type(2)*m_etas[0].real();
-            }
-            z_retval += real_type(2)*nf*m_etas[0].real();
-            if (negate) {
-                return -z_retval;
-            }
-            return z_retval;
-        }
-        complex_type zeta(const complex_type &c) const
-        {
-            const real_type g2 = m_invariants[0], g3 = m_invariants[1], g2_2 = g2/real_type(2);
-            // Reduction to the fundamental cell.
-            auto ab = reduce_to_fc(c);
-            real_type N = std::floor(std::get<0>(ab)), M = std::floor(std::get<1>(ab));
-            real_type alpha = std::get<0>(ab) - N, beta = std::get<1>(ab) - M;
-            complex_type cred(m_periods[0].real() * alpha + m_periods[1] * beta);
-            // Attempt a further reduction.
-            bool negate = false;
-            complex_type new_cred = -cred + m_periods[0].real() + m_periods[1];
-            if (std::abs(new_cred) < std::abs(cred)) {
-                negate = true;
-                cred = new_cred;
-            }
-            // Now we need to reduce cred to the radius of convergence of the Laurent series.
-            std::size_t n = 0u;
-            while (std::abs(cred) >= m_conv_radius / real_type(8)) {
-                cred /= real_type(2);
-                ++n;
-            }
-            // Laurent iteration.
-            auto retval = std::make_tuple(zeta_laurent(cred),Pprime_laurent(cred),P_laurent(cred));
-            for (std::size_t i = 0u; i < n; ++i) {
-                retval = duplicate_zeta(std::get<0>(retval),std::get<1>(retval),std::get<2>(retval),g2,g2_2,g3);
-            }
-            auto z_retval = std::get<0>(retval);
-            if (negate) {
-                z_retval = -z_retval + real_type(2)*m_etas[0] + real_type(2)*m_etas[1];
-            }
-            z_retval += real_type(2)*N*m_etas[0] + real_type(2)*M*m_etas[1];
-            return z_retval;
-        }
-        complex_type zeta_dup(const complex_type &z) const
-        {
-            // TODO assert in fundamental cell?
-            const real_type g2 = m_invariants[0], g3 = m_invariants[1], g2_2 = g2/real_type(2);
-            complex_type zred(z);
-            // We need to reduce x to the radius of convergence of the Laurent series.
-            std::size_t n = 0u;
-            while (std::abs(zred) >= m_conv_radius / real_type(8)) {
-                zred /= real_type(2);
-                ++n;
-            }
-            auto retval = std::make_tuple(zeta_laurent(zred),Pprime_laurent(zred),P_laurent(zred));
-            for (std::size_t i = 0u; i < n; ++i) {
-                retval = duplicate_zeta(std::get<0>(retval),std::get<1>(retval),std::get<2>(retval),g2,g2_2,g3);
-            }
-            return std::get<0>(retval);
-        }
-        template <typename U>
-        U P_laurent(const U &z) const
-        {
-            // TODO here and in other laurent assert convergence radius.
-            U z2(z*z), tmp(z2);
-            U retval = U(1) / z2;
-            std::size_t i = 2u, miter = max_iter + 2u, counter = 0u;
+            real_type t3(m_t1ppp[0]), t1(m_t1p[0]);
+            bool stop3 = false, stop1 = false;
+            std::size_t i = 1u, counter3 = 0u, counter1 = 0u;
             while (true) {
-                if (i == miter) {
+                if (i == max_iter) {
                     std::cout << "WARNING max_iter reached\n";
                     break;
                 }
-                U add(ck(i) * tmp);
-                retval += add;
-                if (stop_check<3>(retval,add,counter)) {
+                if (stop1 && stop3) {
                     break;
                 }
-                tmp *= z2;
+                if (!stop3) {
+                    real_type add3 = m_t1ppp[i];
+                    t3 += add3;
+                    if (stop_check<2>(t3,add3,counter3)) {
+                        stop3 = true;
+                    }
+                }
+                if (!stop1) {
+                    real_type add1 = m_t1p[i];
+                    t1 += add1;
+                    if (stop_check<2>(t1,add1,counter1)) {
+                        stop1 = true;
+                    }
+                }
                 ++i;
             }
-// std::cout << "i=" << i - 2u << '\n';
-            return retval;
+            m_etas[0] = complex_type(-(pi_const*pi_const)/(real_type(6)*m_periods[0].real()) * t3/t1);
+            // DLMF 23.2.14.
+            m_etas[1] = (m_etas[0]*m_periods[1]/real_type(2)-complex_type(0,pi_const/real_type(2)))/(m_periods[0].real()/real_type(2));
         }
+        // Generic implementation of P.
         template <typename U>
-        U Pprime_laurent(const U &z) const
+        U P_impl(const U &x) const
         {
-            U z2(z*z), tmp(z);
-            U retval = U(-2) / (z2*z);
-            std::size_t i = 2u, miter = max_iter + 2u, counter = 0u;
+            const U arg = pi_const * x / m_periods[0].real();
+            // NOTE: it seems like, in practice, GCC is smart enough to use sincos() here directly.
+            const U C = std::cos(arg), S = std::sin(arg), S2 = real_type(2)*S*C, C2 = C*C-S*S;
+            U Cn(C), Sn(S), tmp_s, tmp_c;
+            U t2(0), t1(0);
+            std::size_t i = 0u, counter2 = 0u, counter1 = 0u;
+            bool stop2 = false, stop1 = false;
             while (true) {
-                if (i == miter) {
+                 if (i == max_iter) {
                     std::cout << "WARNING max_iter reached\n";
                     break;
                 }
-                U add((U(2)*static_cast<real_type>(i) - U(2))*ck(i) * tmp);
-                retval += add;
-                if (stop_check<3>(retval,add,counter)) {
+                if (stop1 && stop2) {
                     break;
                 }
-                tmp *= z2;
+                if (!stop2) {
+                    U add2(m_t2[i]);
+                    add2 *= Cn;
+                    t2 += add2;
+                    if (stop_check<2>(t2,add2,counter2)) {
+                        stop2 = true;
+                    }
+                }
+                if (!stop1) {
+                    U add1(m_t1[i]);
+                    add1 *= Sn;
+                    t1 += add1;
+                    if (stop_check<2>(t1,add1,counter1)) {
+                        stop1 = true;
+                    }
+                }
                 ++i;
-            }
-            return retval;
-        }
-        template <typename U>
-        U zeta_laurent(const U &z) const
-        {
-            U z2(z*z), tmp(z*z2);
-            U retval = U(1) / (z);
-            std::size_t i = 2u, miter = max_iter + 2u, counter = 0u;
-            while (true) {
-                if (i == miter) {
-                    std::cout << "WARNING max_iter reached\n";
-                    break;
-                }
-                U sub(ck(i) * tmp/(U(2)*static_cast<real_type>(i) - U(1)));
-                retval -= sub;
-                if (stop_check<3>(retval,sub,counter)) {
-                    break;
-                }
-                tmp *= z2;
-                ++i;
-            }
-            return retval;
-        }
-        std::tuple<real_type,real_type> reduce_to_fc(const complex_type &c) const
-        {
-            // TODO assert det is not zero.
-            real_type re(c.real()), im(c.imag());
-            real_type p1r(m_periods[0].real()), p1i(m_periods[0].imag()), p2r(m_periods[1].real()), p2i(m_periods[1].imag());
-            real_type det(p1r*p2i-p2r*p1i);
-            real_type alpha((p2i*re-p2r*im)/det), beta((-p1i*re+p1r*im)/det);
-            return std::make_tuple(std::move(alpha),std::move(beta));
-        }
-        complex_type ln_sigma_cont(const complex_type &c) const
-        {
-            const complex_type om1 = m_periods[0].real()/real_type(2), om3 = m_periods[1]/real_type(2);
-            auto cred(c);
-            // Initial reduction to improve the convergence of the expansion.
-            bool further_red = false;
-            if (cred.imag() / m_periods[1].imag() > real_type(.5)) {
-                further_red = true;
-                cred = -cred + m_periods[0].real() + m_periods[1];
-            }
-            // Reduce to the fundamental real period.
-            real_type N(std::floor(cred.real()/m_periods[0].real()));
-            complex_type cred_F(cred.real() - N*m_periods[0].real(),cred.imag());
-            // Perform the expansion.
-            complex_type arg = pi_const * cred_F / m_periods[0].real(), S = std::sin(arg), C = std::cos(arg), Sn(real_type(0)), Cn(real_type(1));
-            complex_type retval = std::log(m_periods[0].real()/pi_const) + m_etas[0].real()  / m_periods[0].real() * (cred_F * cred_F) + std::log(S);
-            std::size_t i = 1u, miter = max_iter + 1u, counter = 0u;
-            complex_type tmp_s, tmp_c, mul;
-            while (true) {
-                if (i == miter) {
-                    std::cout << "WARNING max_iter reached\n";
-                    break;
-                }
-                tmp_s = Sn*C+Cn*S;
-                tmp_c = Cn*C-Sn*S;
+                tmp_s = Sn*C2+Cn*S2;
+                tmp_c = Cn*C2-Sn*S2;
                 Sn = tmp_s;
                 Cn = tmp_c;
-                mul = Sn;
-                mul *= mul;
-                mul *= real_type(4);
-                complex_type add = ls_c(i) * mul;
+            }
+            return (t2*t2)/(t1*t1)*m_Pfac + m_e1;
+        }
+        // Generic implementation of Pprime.
+        template <typename U>
+        U Pprime_impl(const U &x) const
+        {
+            const U arg = pi_const * x / m_periods[0].real();
+            const U C = std::cos(arg), S = std::sin(arg), S2 = real_type(2)*S*C, C2 = C*C-S*S;
+            U Cn(C), Sn(S), tmp_s, tmp_c;
+            U t1(0), t2(0), t1p(0), t2p(0);
+            std::size_t i = 0u, counter1 = 0u, counter2 = 0u, counter1p = 0u, counter2p = 0u;
+            bool stop1 = false, stop2 = false, stop1p = false, stop2p = false;
+            while (true) {
+                 if (i == max_iter) {
+                    std::cout << "WARNING max_iter reached\n";
+                    break;
+                }
+                if (stop1 && stop2 && stop1p && stop2p) {
+                    break;
+                }
+                if (!stop1) {
+                    U add1(m_t1[i]);
+                    add1 *= Sn;
+                    t1 += add1;
+                    if (stop_check<2>(t1,add1,counter1)) {
+                        stop1 = true;
+                    }
+                }
+                if (!stop2) {
+                    U add2(m_t2[i]);
+                    add2 *= Cn;
+                    t2 += add2;
+                    if (stop_check<2>(t2,add2,counter2)) {
+                        stop2 = true;
+                    }
+                }
+                if (!stop1p) {
+                    U add1p(m_t1p[i]);
+                    add1p *= Cn;
+                    t1p += add1p;
+                    if (stop_check<2>(t1p,add1p,counter1p)) {
+                        stop1p = true;
+                    }
+                }
+                if (!stop2p) {
+                    U add2p(m_t2p[i]);
+                    add2p *= Sn;
+                    t2p += add2p;
+                    if (stop_check<2>(t2p,add2p,counter2p)) {
+                        stop2p = true;
+                    }
+                }
+                ++i;
+                tmp_s = Sn*C2+Cn*S2;
+                tmp_c = Cn*C2-Sn*S2;
+                Sn = tmp_s;
+                Cn = tmp_c;
+            }
+            return m_Pprimefac*t2*(t2p*t1-t1p*t2)/(t1*t1*t1);
+        }
+        // Generic implementation of zeta.
+        template <typename U>
+        U zeta_impl(const U &x) const
+        {
+            const U arg = pi_const * x / m_periods[0].real();
+            const U C = std::cos(arg), S = std::sin(arg), S2 = real_type(2)*S*C, C2 = C*C-S*S;
+            U Cn(C), Sn(S), tmp_s, tmp_c;
+            U t1(0), t1p(0);
+            std::size_t i = 0u, counter1 = 0u, counter1p = 0u;
+            bool stop1 = false, stop1p = false;
+            while (true) {
+                 if (i == max_iter) {
+                    std::cout << "WARNING max_iter reached\n";
+                    break;
+                }
+                if (stop1 && stop1p) {
+                    break;
+                }
+                if (!stop1) {
+                    U add1(m_t1[i]);
+                    add1 *= Sn;
+                    t1 += add1;
+                    if (stop_check<2>(t1,add1,counter1)) {
+                        stop1 = true;
+                    }
+                }
+                if (!stop1p) {
+                    U add1p(m_t1p[i]);
+                    add1p *= Cn;
+                    t1p += add1p;
+                    if (stop_check<2>(t1p,add1p,counter1p)) {
+                        stop1p = true;
+                    }
+                }
+                ++i;
+                tmp_s = Sn*C2+Cn*S2;
+                tmp_c = Cn*C2-Sn*S2;
+                Sn = tmp_s;
+                Cn = tmp_c;
+            }
+            return m_zetaadd*x+m_zetafac*t1p/t1;
+        }
+        // Generic sigma implementation.
+        template <typename U>
+        U sigma_impl(const U &x) const
+        {
+            const U arg = pi_const * x / m_periods[0].real();
+            const U C = std::cos(arg), S = std::sin(arg), S2 = real_type(2)*S*C, C2 = C*C-S*S;
+            U Cn(C), Sn(S), tmp_s, tmp_c;
+            U retval(0);
+            std::size_t i = 0u, counter = 0u;
+            while (true) {
+                 if (i == max_iter) {
+                    std::cout << "WARNING max_iter reached\n";
+                    break;
+                }
+                U add(m_t1[i]);
+                add *= Sn;
                 retval += add;
                 if (stop_check<2>(retval,add,counter)) {
                     break;
                 }
                 ++i;
+                tmp_s = Sn*C2+Cn*S2;
+                tmp_c = Cn*C2-Sn*S2;
+                Sn = tmp_s;
+                Cn = tmp_c;
             }
-            // Add the homogeneity relations.
-            retval += real_type(2)*N*m_etas[0]*(cred_F + N*om1) - complex_type(real_type(0),N*pi_const);
-            // Restore the initial reduction.
-            if (further_red) {
-                retval -= (cred - om1 - om3) * (real_type(2)*m_etas[0] + real_type(2)*m_etas[1]);
-            }
+            // The rest.
+            retval /= m_sigma_den;
+            retval *= m_periods[0].real();
+            retval *= std::exp(m_etas[0].real()*x*x/m_periods[0].real());
             return retval;
         }
-        complex_type ln_sigma(const complex_type &c) const
-        {
-            if (c.imag() >= real_type(0) && c.imag() < m_periods[1].imag()) {
-                return ln_sigma_cont(c);
-            }
-            // Otherwise, use the homogeneity formulae.
-            auto ab = reduce_to_fc(c);
-            real_type N = std::floor(std::get<0>(ab)), M = std::floor(std::get<1>(ab));
-            real_type alpha = std::get<0>(ab) - N, beta = std::get<1>(ab) - M;
-            complex_type cred(m_periods[0].real() * alpha + m_periods[1] * beta);
-            auto retval = ln_sigma_cont(cred);
-            // NOTE: here the use of N and M is switched wrt the use in A+S.
-            retval += complex_type(real_type(0),pi_const*(M+N+M*N));
-            retval += real_type(2) * (cred + N*m_periods[0].real()/real_type(2) + M*m_periods[1]/real_type(2)) * (N*m_etas[0] + M*m_etas[1]);
-            return retval;
-        }
+        // Continuous implementations of the real/imag parts of ln sigma.
         real_type ln_sigma_imag_cont(const complex_type &c) const
         {
             const real_type om1 = m_periods[0].real()/real_type(2);
@@ -918,19 +737,136 @@ class we
             retval += real_type(2)*N*m_etas[0].real()*(cred_F.real() + N*om1);
             return retval;
         }
+        // Reduction to fundamental cell.
+        std::tuple<real_type,real_type> reduce_to_fc(const complex_type &c) const
+        {
+            real_type re(c.real()), im(c.imag());
+            real_type p1r(m_periods[0].real()), p1i(m_periods[0].imag()), p2r(m_periods[1].real()), p2i(m_periods[1].imag());
+            real_type det(p1r*p2i-p2r*p1i);
+            real_type alpha((p2i*re-p2r*im)/det), beta((-p1i*re+p1r*im)/det);
+            return std::make_tuple(std::move(alpha),std::move(beta));
+        }
+    public:
+        // TODO:
+        // - finiteness checks,
+        // - handle special cases -> singularities in the cubic roots computations, infinite periods,
+        //   stuff like that.
+        explicit we(const real_type &g2, const real_type &g3):m_invariants{{g2,g3}}
+        {
+            // Calculation of the roots.
+            setup_roots(real_type(4),-g2,-g3);
+            // Computation of the periods.
+            setup_periods();
+            // Setup q and related.
+            setup_q();
+            // Setup of the needed theta functions expansions.
+            setup_thetas();
+            // Calculate the eta constants.
+            setup_etas();
+            // Setup the quantities for the calculation of P.
+            setup_P();
+            // Setup the quantities for the calculation of Pprime.
+            setup_Pprime();
+            // Setup the quantities for the calculation of zeta.
+            setup_zeta();
+            // Setup the quantities for the computation of sigma.
+            setup_sigma();
+        }
+        const std::array<complex_type,3> &roots() const
+        {
+            return m_roots;
+        }
+        const std::array<real_type,2> &invariants() const
+        {
+            return m_invariants;
+        }
+        const std::array<complex_type,2> &periods() const
+        {
+            return m_periods;
+        }
+        const std::array<complex_type,2> &etas() const
+        {
+            return m_etas;
+        }
+        const real_type &Delta() const
+        {
+            return m_delta;
+        }
+        const complex_type &q() const
+        {
+            return m_q;
+        }
+        friend std::ostream &operator<<(std::ostream &os, const we &w)
+        {
+            std::ostringstream oss;
+            oss << std::setprecision(detail::digits10<real_type>());
+            oss << "Invariants: [" << w.m_invariants[0] << ',' << w.m_invariants[1] << "]\n";
+            oss << "Delta: " << w.m_delta << '\n';
+            oss << "Roots: [" << w.m_roots[0] << ',' << w.m_roots[1] << ',' << w.m_roots[2] << "]\n";
+            oss << "Periods: [" << w.m_periods[0] << ',' << w.m_periods[1] << "]\n";
+            oss << "etas: [" << w.m_etas[0] << ',' << w.m_etas[1] << "]\n";
+            oss << "q: " << w.m_q;
+            os << oss.str();
+            return os;
+        }
+        real_type P(const real_type &x) const
+        {
+            return P_impl(x);
+        }
+        complex_type P(const complex_type &c) const
+        {
+            auto ab = reduce_to_fc(c);
+            real_type alpha = std::get<0>(ab) - std::floor(std::get<0>(ab)),
+                beta = std::get<1>(ab) - std::floor(std::get<1>(ab));
+            complex_type cred = m_periods[0].real() * alpha + m_periods[1] * beta;
+            return P_impl(cred);
+        }
+        real_type Pprime(const real_type &x) const
+        {
+            return Pprime_impl(x);
+        }
+        complex_type Pprime(const complex_type &c) const
+        {
+            auto ab = reduce_to_fc(c);
+            real_type alpha = std::get<0>(ab) - std::floor(std::get<0>(ab)),
+                beta = std::get<1>(ab) - std::floor(std::get<1>(ab));
+            complex_type cred = m_periods[0].real() * alpha + m_periods[1] * beta;
+            return Pprime_impl(cred);
+        }
+        real_type zeta(const real_type &x) const
+        {
+            return zeta_impl(x);
+        }
+        complex_type zeta(const complex_type &c) const
+        {
+            // Reduction to the fundamental cell.
+            auto ab = reduce_to_fc(c);
+            real_type N = std::floor(std::get<0>(ab)), M = std::floor(std::get<1>(ab));
+            real_type alpha = std::get<0>(ab) - N, beta = std::get<1>(ab) - M;
+            complex_type cred(m_periods[0].real() * alpha + m_periods[1] * beta);
+            return zeta_impl(cred) + real_type(2)*N*m_etas[0] + real_type(2)*M*m_etas[1];
+        }
+        real_type sigma(const real_type &x) const
+        {
+            return sigma_impl(x);
+        }
+        complex_type sigma(const complex_type &c) const
+        {
+            return sigma_impl(c);
+        }
         real_type ln_sigma_real(const complex_type &c) const
         {
             if (c.imag() >= real_type(0) && c.imag() <= m_periods[1].imag()/real_type(2)) {
                 return ln_sigma_real_cont(c);
             }
-            return ln_sigma(c).real();
+            return std::log(sigma(c)).real();
         }
         real_type ln_sigma_imag(const complex_type &c) const
         {
             if (c.imag() >= real_type(0) && c.imag() <= m_periods[1].imag()/real_type(2)) {
                 return ln_sigma_imag_cont(c);
             }
-            return ln_sigma(c).imag();
+            return std::log(sigma(c)).imag();
         }
         complex_type Pinv(const complex_type &c) const
         {
@@ -1017,58 +953,26 @@ class we
             }
             return retval;
         }
-        real_type sigma(const real_type &x) const
-        {
-            return sigma_impl(x);
-        }
-        complex_type sigma(const complex_type &c) const
-        {
-            return sigma_impl(c);
-        }
-        template <typename U>
-        U sigma_impl(const U &x) const
-        {
-            const U arg = pi_const * x / m_periods[0].real();
-            // TODO: use sincos?
-            const U C = std::cos(arg), S = std::sin(arg), S2 = real_type(2)*S*C, C2 = C*C-S*S;
-            U Cn(C), Sn(S), tmp_s, tmp_c;
-            U retval(0);
-            std::size_t i = 0u, counter = 0u;
-            while (true) {
-                 if (i == max_iter) {
-                    std::cout << "WARNING max_iter reached\n";
-                    break;
-                }
-                U add(m_sigma_c[i]);
-                add *= Sn;
-                retval += add;
-                if (stop_check<2>(retval,add,counter)) {
-                    break;
-                }
-                ++i;
-                tmp_s = Sn*C2+Cn*S2;
-                tmp_c = Cn*C2-Sn*S2;
-                Sn = tmp_s;
-                Cn = tmp_c;
-            }
-            // The rest.
-            retval /= m_sigma_den;
-            retval *= m_periods[0].real();
-            retval *= std::exp(m_etas[0].real()*x*x/m_periods[0].real());
-            return retval;
-        }
     private:
-        std::array<real_type,2>         m_invariants;
-        real_type                       m_delta;
-        std::array<complex_type,3>      m_roots;
-        std::array<real_type,max_iter>  m_ck_laurent;
-        std::array<complex_type,2>      m_periods;
-        real_type                       m_conv_radius;
-        std::array<complex_type,2>      m_etas;
-        complex_type                    m_q;
-        std::array<real_type,max_iter>  m_ln_sigma_c;
-        std::array<real_type,max_iter>  m_sigma_c;
-        real_type                       m_sigma_den;
+        std::array<real_type,2>                     m_invariants;
+        real_type                                   m_delta;
+        std::array<complex_type,3>                  m_roots;
+        std::array<complex_type,2>                  m_periods;
+        std::array<complex_type,2>                  m_etas;
+        complex_type                                m_q;
+        std::array<real_type,max_iter>              m_ln_sigma_c;
+        std::array<real_type,max_iter>              m_t1;
+        std::array<real_type,max_iter>              m_t1p;
+        std::array<real_type,max_iter>              m_t1ppp;
+        std::array<real_type,max_iter>              m_t2;
+        std::array<real_type,max_iter>              m_t2p;
+        // Constants for the computations of the various functions.
+        real_type                                   m_e1;
+        real_type                                   m_Pfac;
+        real_type                                   m_Pprimefac;
+        real_type                                   m_sigma_den;
+        real_type                                   m_zetafac;
+        real_type                                   m_zetaadd;
 };
 
 template <typename T>
