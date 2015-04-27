@@ -684,3 +684,9 @@ BOOST_AUTO_TEST_CASE(test_11)
     boost::mpl::for_each<real_types>(tester_11());
     std::cout << "\n\n\n";
 }
+
+BOOST_AUTO_TEST_CASE(test_12)
+{
+    we<double> w(0.62709183536928115,-0.095570490579046416);
+    std::cout << w.Pinv(0.22860037855939774) << '\n';
+}
