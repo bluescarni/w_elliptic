@@ -23,6 +23,7 @@
 #define BOOST_TEST_MODULE w_elliptic_test
 #include <boost/test/unit_test.hpp>
 
+#include <algorithm>
 #include <array>
 #include <boost/algorithm/string/classification.hpp>
 #include <boost/algorithm/string/split.hpp>
@@ -151,12 +152,29 @@ struct tester_01
             complex_from_str(eta,v[12],v[13]);
             // Build the W object.
             we<real_type> w(g2,g3);
+            // Order the roots according to the expected convention.
+            auto w_roots = w.roots();
+            if (w.Delta() < real_type(0)) {
+                std::sort(w_roots.begin(),w_roots.end(),[](const complex_type &c1, const complex_type &c2) {
+                    return c1.imag() > c2.imag();
+                });
+                // The second root is real.
+                w_roots[1] = complex_type(w_roots[1].real(),real_type(0));
+            } else {
+                std::sort(w_roots.begin(),w_roots.end(),[](const complex_type &c1, const complex_type &c2) {
+                    return c1.real() > c2.real();
+                });
+                // All the roots are real.
+                std::for_each(w_roots.begin(),w_roots.end(),[](complex_type &c) {
+                    c = complex_type(c.real(),real_type(0));
+                });
+            }
             // Compute the errors on the roots.
             for (std::size_t j = 0u; j < 3u; ++j) {
                 if (roots[j] == real_type(0)) {
-                    err = std::abs(w.roots()[j]);
+                    err = std::abs(w_roots[j]);
                 } else {
-                    err = std::abs((roots[j]-w.roots()[j])/roots[j]);
+                    err = std::abs((roots[j]-w_roots[j])/roots[j]);
                 }
                 acc_root_err += err;
                 if (err > max_root_err) {
@@ -685,7 +703,89 @@ BOOST_AUTO_TEST_CASE(test_11)
     std::cout << "\n\n\n";
 }
 
+struct tester_12
+{
+    template <typename RealType>
+    void operator()(const RealType &)
+    {
+        std::cout << "Testing type: " << typeid(RealType).name() << '\n';
+        using real_type = RealType;
+        std::uniform_real_distribution<double> g2dist(-10.,20.);
+        std::uniform_real_distribution<double> g3dist(-10.,10.);
+        real_type max_root_err = 0., max_g2 = 0., max_g3 = 0., acc_err = 0.;
+        unsigned long counter = 0;
+        for (int i = 0; i < 1000; ++i) {
+            real_type g2(static_cast<real_type>(g2dist(rng))), g3(static_cast<real_type>(g3dist(rng)));
+            we<real_type> w(g2,g3);
+            auto err = std::abs((w.P(w.periods()[0].real()/real_type(2))-w.roots()[0])/w.roots()[0]);
+            if (err > max_root_err) {
+                max_root_err = err;
+                max_g2 = g2;
+                max_g3 = g3;
+            }
+            acc_err += err;
+            ++counter;
+            err = std::abs((w.P(w.periods()[1]/real_type(2))-w.roots()[2])/w.roots()[2]);
+            if (err > max_root_err) {
+                max_root_err = err;
+                max_g2 = g2;
+                max_g3 = g3;
+            }
+            acc_err += err;
+            ++counter;
+            err = std::abs((w.P((w.periods()[0]+w.periods()[1])/real_type(2))-w.roots()[1])/w.roots()[1]);
+            if (err > max_root_err) {
+                max_root_err = err;
+                max_g2 = g2;
+                max_g3 = g3;
+            }
+            acc_err += err;
+            ++counter;
+        }
+        // Testing with g2 == 0.
+        for (int i = 0; i < 1000; ++i) {
+            real_type g2(0), g3(static_cast<real_type>(g3dist(rng)));
+            we<real_type> w(g2,g3);
+            auto err = std::abs((w.P(w.periods()[0].real()/real_type(2))-w.roots()[0])/w.roots()[0]);
+            if (err > max_root_err) {
+                max_root_err = err;
+                max_g2 = g2;
+                max_g3 = g3;
+            }
+            acc_err += err;
+            ++counter;
+            err = std::abs((w.P(w.periods()[1]/real_type(2))-w.roots()[2])/w.roots()[2]);
+            if (err > max_root_err) {
+                max_root_err = err;
+                max_g2 = g2;
+                max_g3 = g3;
+            }
+            acc_err += err;
+            ++counter;
+            err = std::abs((w.P((w.periods()[0]+w.periods()[1])/real_type(2))-w.roots()[1])/w.roots()[1]);
+            if (err > max_root_err) {
+                max_root_err = err;
+                max_g2 = g2;
+                max_g3 = g3;
+            }
+            acc_err += err;
+            ++counter;
+        }
+        // NOTE: g3 == 0 is problematic, as one root will always be zero. Skip it for now.
+        std::cout << "\tMax root match error: " << max_root_err << " @ [g2=" << max_g2 << ",g3=" << max_g3 << "]\n";
+        std::cout << "\tAverage root match error: " << acc_err / real_type(counter) << '\n';
+    }
+};
+
 BOOST_AUTO_TEST_CASE(test_12)
+{
+    std::cout << "Testing root matching\n";
+    std::cout << "=====================\n";
+    boost::mpl::for_each<real_types>(tester_12());
+    std::cout << "\n\n\n";
+}
+
+BOOST_AUTO_TEST_CASE(test_13)
 {
     we<double> w(0.62709183536928115,-0.095570490579046416);
     std::cout << w.Pinv(0.22860037855939774) << '\n';

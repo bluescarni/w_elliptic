@@ -125,7 +125,6 @@ bool isfinite(const std::complex<T> &c)
 
 // TODO:
 // - maybe quicker calculation of error for complex: instead of abs(), just a**2+b**2;
-// - Pinv should return 2 values, the first one with the smallest imaginary part,
 // - testing in the fundamental cell,
 // - disallow Delta = 0 for now,
 // - tests with pathological values (e.g., z = 0, z close to cell border, etc.),
@@ -169,7 +168,7 @@ class we
         }
         // Setup the roots of the Weierstrass cubic. See:
         // http://en.wikipedia.org/wiki/Cubic_function
-        void setup_roots(const real_type &a, const real_type &c, const real_type &d)
+        void calculate_roots(const real_type &a, const real_type &c, const real_type &d)
         {
             m_delta = real_type(-4) * a * c*c*c - real_type(27) * a*a * d*d;
             std::array<complex_type,3> u_list{{
@@ -304,6 +303,54 @@ class we
             m_periods[0] = p1;
             m_periods[1] = p2;
         }
+        // Order the roots according to the DLMF convention. See DLMF 23.6.2 and following.
+        void order_roots()
+        {
+            complex_type t2(m_t2[0]), t4(m_t4[0]);
+            const complex_type t2_fac = real_type(2) * std::pow(m_q,real_type(1)/real_type(4));
+            bool stop2 = false, stop4 = false;
+            std::size_t i = 1u, counter2 = 0u, counter4 = 0u;
+            while (true) {
+                if (i == max_iter) {
+                    std::cout << "WARNING max_iter reached\n";
+                    break;
+                }
+                if (stop2 && stop4) {
+                    break;
+                }
+                if (!stop2) {
+                    complex_type add2 = m_t2[i];
+                    t2 += add2;
+                    if (stop_check<2>(t2,add2,counter2)) {
+                        stop2 = true;
+                    }
+                }
+                if (!stop4) {
+                    complex_type add4 = m_t4[i];
+                    t4 += add4;
+                    if (stop_check<2>(t4,add4,counter4)) {
+                        stop4 = true;
+                    }
+                }
+                ++i;
+            }
+            t2 *= t2_fac;
+            const real_type r_fac = pi_const*pi_const/(real_type(3)*m_periods[0].real()*m_periods[0].real());
+            const auto t2_4 = t2*t2*t2*t2, t4_4 = t4*t4*t4*t4;
+            const complex_type e1 = r_fac * (t2_4+real_type(2)*t4_4);
+            const complex_type e2 = r_fac * (t2_4-t4_4);
+            const complex_type e3 = -r_fac * (real_type(2)*t2_4+t4_4);
+            // Now we need to match each root calculated here to the ones we calculated (and
+            // cleaned up) earlier.
+            std::array<complex_type,3> roots;
+            auto cmp = [](const complex_type &test, const complex_type &c1, const complex_type &c2) {
+                return std::abs(test - c1) < std::abs(test - c2);
+            };
+            roots[0] = *std::min_element(m_roots.begin(),m_roots.end(),[&e1,cmp](const complex_type &c1, const complex_type &c2) {return cmp(e1,c1,c2);});
+            roots[1] = *std::min_element(m_roots.begin(),m_roots.end(),[&e2,cmp](const complex_type &c1, const complex_type &c2) {return cmp(e2,c1,c2);});
+            roots[2] = *std::min_element(m_roots.begin(),m_roots.end(),[&e3,cmp](const complex_type &c1, const complex_type &c2) {return cmp(e3,c1,c2);});
+            m_roots = roots;
+        }
         // Setup the q constant and related quantities.
         void setup_q()
         {
@@ -368,6 +415,16 @@ class we
                 }
                 m_t2[i] = q;
                 m_t2p[i] = -q*fac;
+            }
+            // theta_4.
+            m_t4[0] = complex_type(real_type(1),real_type(0));
+            for (std::size_t i = 1u; i < max_iter; ++i) {
+                const std::size_t qpow = i*i;
+                real_type fac = real_type(2);
+                if (i % 2u) {
+                    fac = -fac;
+                }
+                m_t4[i] = fac * std::pow(m_q,real_type(qpow));
             }
         }
         // Setup P - see DLMF 23.6.5 and round.
@@ -753,14 +810,18 @@ class we
         //   stuff like that.
         explicit we(const real_type &g2, const real_type &g3):m_invariants{{g2,g3}}
         {
-            // Calculation of the roots.
-            setup_roots(real_type(4),-g2,-g3);
+            // Calculation of the roots. Note that after this the roots
+            // are stored in an unspecified order.
+            calculate_roots(real_type(4),-g2,-g3);
             // Computation of the periods.
             setup_periods();
             // Setup q and related.
             setup_q();
             // Setup of the needed theta functions expansions.
             setup_thetas();
+            // After setting up q and the theta expansion, we can order the roots according to
+            // the DLMF convention.
+            order_roots();
             // Calculate the eta constants.
             setup_etas();
             // Setup the quantities for the calculation of P.
@@ -868,18 +929,33 @@ class we
             }
             return std::log(sigma(c)).imag();
         }
+        complex_type Pinv2(const complex_type &c) const
+        {
+
+        }
         complex_type Pinv(const complex_type &c) const
         {
             auto g3 = m_invariants[1];
             complex_type e1, e2, e3, retval, c_tmp(c);
-            e1 = m_roots[0];
-            e2 = m_roots[1];
-            e3 = m_roots[2];
+            // We need to replicate the convention of A+S on the roots ordering.
+            std::array<complex_type,3> roots(m_roots);
+            if (m_delta < real_type(0)) {
+                std::sort(roots.begin(),roots.end(),[](const complex_type &c1, const complex_type &c2) {
+                    return c1.imag() > c2.imag();
+                });
+            } else {
+                std::sort(roots.begin(),roots.end(),[](const complex_type &c1, const complex_type &c2) {
+                    return c1.real() > c2.real();
+                });
+            }
+            e1 = roots[0];
+            e2 = roots[1];
+            e3 = roots[2];
             bool negative_g3 = false;
             if (g3 < real_type(0)) {
-                e1 = -m_roots[2];
-                e2 = -m_roots[1];
-                e3 = -m_roots[0];
+                e1 = -roots[2];
+                e2 = -roots[1];
+                e3 = -roots[0];
                 g3 = -g3;
                 negative_g3 = true;
                 c_tmp = -c;
@@ -966,6 +1042,7 @@ class we
         std::array<real_type,max_iter>              m_t1ppp;
         std::array<real_type,max_iter>              m_t2;
         std::array<real_type,max_iter>              m_t2p;
+        std::array<complex_type,max_iter>           m_t4;
         // Constants for the computations of the various functions.
         real_type                                   m_e1;
         real_type                                   m_Pfac;
