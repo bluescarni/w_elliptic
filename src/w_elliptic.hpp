@@ -306,6 +306,7 @@ class we
         // Order the roots according to the DLMF convention. See DLMF 23.6.2 and following.
         void order_roots()
         {
+            // We start by re-calculating the roots using theta functions.
             complex_type t2(m_t2[0]), t4(m_t4[0]);
             const complex_type t2_fac = real_type(2) * std::pow(m_q,real_type(1)/real_type(4));
             bool stop2 = false, stop4 = false;
@@ -349,6 +350,7 @@ class we
             roots[0] = *std::min_element(m_roots.begin(),m_roots.end(),[&e1,cmp](const complex_type &c1, const complex_type &c2) {return cmp(e1,c1,c2);});
             roots[1] = *std::min_element(m_roots.begin(),m_roots.end(),[&e2,cmp](const complex_type &c1, const complex_type &c2) {return cmp(e2,c1,c2);});
             roots[2] = *std::min_element(m_roots.begin(),m_roots.end(),[&e3,cmp](const complex_type &c1, const complex_type &c2) {return cmp(e3,c1,c2);});
+            // NOTE: maybe check that e1 is purely real, as that is used in P.
             m_roots = roots;
         }
         // Setup the q constant and related quantities.
@@ -430,15 +432,7 @@ class we
         // Setup P - see DLMF 23.6.5 and round.
         void setup_P()
         {
-            // First we need to understand which root e1 is such that P(omega_1) == e1.
-            auto it = std::min_element(m_roots.begin(),m_roots.end(),[this](const complex_type &c1, const complex_type &c2) -> bool {
-                auto Pi1 = this->Pinv(c1), Pi2 = this->Pinv(c2);
-                return std::abs(Pi1 - this->m_periods[0].real()/real_type(2)) < std::abs(Pi2 - this->m_periods[0].real()/real_type(2));
-            });
-            // TODO maybe check and throw here.
-            //assert(it->imag() == real_type(0));
-            m_e1 = it->real();
-            // Now we need to compute t3 * t4, which is equal to t1p/t2 according to the Jacobi identity DLMF 20.4.6.
+            // We need to compute t3 * t4, which is equal to t1p/t2 according to the Jacobi identity DLMF 20.4.6.
             // This allows us to compute everything in real.
             real_type t1p(m_t1p[0]), t2(m_t2[0]);
             bool stop1 = false, stop2 = false;
@@ -577,7 +571,7 @@ class we
                 Sn = tmp_s;
                 Cn = tmp_c;
             }
-            return (t2*t2)/(t1*t1)*m_Pfac + m_e1;
+            return (t2*t2)/(t1*t1)*m_Pfac + m_roots[0].real();
         }
         // Generic implementation of Pprime.
         template <typename U>
@@ -1044,7 +1038,6 @@ class we
         std::array<real_type,max_iter>              m_t2p;
         std::array<complex_type,max_iter>           m_t4;
         // Constants for the computations of the various functions.
-        real_type                                   m_e1;
         real_type                                   m_Pfac;
         real_type                                   m_Pprimefac;
         real_type                                   m_sigma_den;
