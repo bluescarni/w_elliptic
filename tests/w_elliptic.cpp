@@ -785,7 +785,71 @@ BOOST_AUTO_TEST_CASE(test_12)
     std::cout << "\n\n\n";
 }
 
+struct tester_13
+{
+    template <typename RealType>
+    void operator()(const RealType &)
+    {
+        std::cout << "Testing type: " << typeid(RealType).name() << '\n';
+        using real_type = RealType;
+        using complex_type = typename we<real_type>::complex_type;
+        std::uniform_real_distribution<double> rdist(-100.,100.);
+        std::uniform_real_distribution<double> g2dist(-10.,20.);
+        std::uniform_real_distribution<double> g3dist(-10.,10.);
+        real_type max_Pinv_err = 0., max_g2 = 0., max_g3 = 0., acc_err = 0.;
+        complex_type max_P(real_type(0.),real_type(0.)), max_P_inv(max_P);
+        unsigned long counter = 0;
+        for (int i = 0; i < 1000; ++i) {
+            real_type g2(static_cast<real_type>(g2dist(rng))), g3(static_cast<real_type>(g3dist(rng)));
+            we<real_type> w(g2,g3);
+            for (std::size_t j = 0; j < 3u; ++j) {
+                auto P(w.roots()[j]);
+                auto Pinv = w.Pinv(P);
+                auto err = std::abs((P-w.P(Pinv))/P);
+                if (err > max_Pinv_err) {
+                    max_Pinv_err = err;
+                    max_g2 = g2;
+                    max_g3 = g3;
+                    max_P = P;
+                    max_P_inv = Pinv;
+                }
+                acc_err += err;
+                ++counter;
+            }
+        }
+        // Add a couple of tests with g2 == 0. g3 == 0 has the problem that P will be zero.
+        for (int i = 0; i < 1000; ++i) {
+            real_type g2(0), g3(static_cast<real_type>(g3dist(rng)));
+            we<real_type> w(g2,g3);
+            for (std::size_t j = 0; j < 3u; ++j) {
+                auto P(w.roots()[j]);
+                auto Pinv = w.Pinv(P);
+                auto err = std::abs((P-w.P(Pinv))/P);
+                if (err > max_Pinv_err) {
+                    max_Pinv_err = err;
+                    max_g2 = g2;
+                    max_g3 = g3;
+                    max_P = P;
+                    max_P_inv = Pinv;
+                }
+                acc_err += err;
+                ++counter;
+            }
+        }
+        std::cout << "\tMax Pinv error: " << max_Pinv_err << " @ [g2=" << max_g2 << ",g3=" << max_g3 << ",P=" << max_P  << ",Pinv=" << max_P_inv << "]\n";
+        std::cout << "\tAverage Pinv error: " << acc_err / real_type(counter) << '\n';
+    }
+};
+
 BOOST_AUTO_TEST_CASE(test_13)
+{
+    std::cout << "Testing critical values for inverse P\n";
+    std::cout << "=====================================\n";
+    boost::mpl::for_each<real_types>(tester_13());
+    std::cout << "\n\n\n";
+}
+
+BOOST_AUTO_TEST_CASE(test_14)
 {
     we<double> w(0.62709183536928115,-0.095570490579046416);
     std::cout << w.Pinv(0.22860037855939774) << '\n';

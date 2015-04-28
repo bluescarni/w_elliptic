@@ -923,99 +923,57 @@ class we
             }
             return std::log(sigma(c)).imag();
         }
-        complex_type Pinv2(const complex_type &c) const
-        {
-
-        }
+        // Inversion of DLMF 23.6.21.
         complex_type Pinv(const complex_type &c) const
         {
-            auto g3 = m_invariants[1];
-            complex_type e1, e2, e3, retval, c_tmp(c);
-            // We need to replicate the convention of A+S on the roots ordering.
-            std::array<complex_type,3> roots(m_roots);
-            if (m_delta < real_type(0)) {
-                std::sort(roots.begin(),roots.end(),[](const complex_type &c1, const complex_type &c2) {
-                    return c1.imag() > c2.imag();
-                });
-            } else {
-                std::sort(roots.begin(),roots.end(),[](const complex_type &c1, const complex_type &c2) {
-                    return c1.real() > c2.real();
-                });
-            }
-            e1 = roots[0];
-            e2 = roots[1];
-            e3 = roots[2];
-            bool negative_g3 = false;
-            if (g3 < real_type(0)) {
-                e1 = -roots[2];
-                e2 = -roots[1];
-                e3 = -roots[0];
-                g3 = -g3;
-                negative_g3 = true;
-                c_tmp = -c;
-            }
-            if (m_delta >= real_type(0)) {
-                real_type k = std::sqrt(((e2-e3)/(e1-e3)).real());
-                complex_type phi(std::asin(std::sqrt((e1-e3)/(c_tmp-e3))));
-                real_type tmp(1);
-                std::size_t i = 0u;
-                while (true) {
-                    if (i == max_iter) {
-                        std::cout << "WARNING max_iter reached\n";
-                        break;
-                    }
-                    if (std::abs(k - real_type(1)) <= detail::tolerance<real_type>()) {
-                        break;
-                    }
-                    phi = (std::asin(k*std::sin(phi)) + phi)/real_type(2);
-                    tmp *= real_type(2) / (real_type(1) + k);
-                    k = real_type(2) * std::sqrt(k)  /(real_type(1) + k);
-                    ++i;
+            complex_type e1, e2, e3;
+            e1 = m_roots[0];
+            e2 = m_roots[1];
+            e3 = m_roots[2];
+            // Check if the computation will have a singularity.
+            bool singular = false;
+            if (e3 == real_type(0)) {
+                if (std::abs(c - e3) <= detail::tolerance<real_type>()) {
+                    singular = true;
                 }
-                complex_type ell = std::log(real_type(1)/std::cos(phi)+std::tan(phi)) * tmp;
-                retval = ell / std::sqrt((e1-e3).real());
             } else {
-                real_type H2 = std::sqrt(((e2 - e3) * (e2 - e1))).real();
-                real_type k = std::sqrt(real_type(1) / real_type(2) - real_type(3) * e2 / (real_type(4) * H2)).real();
-                complex_type phi(std::acos((e2-c_tmp+H2)/(e2-c_tmp-H2)));
-                real_type tmp(1);
-                std::size_t i = 0u;
-                while (true) {
-                    if (i == max_iter) {
-                        std::cout << "WARNING max_iter reached\n";
-                        break;
-                    }
-                    if (std::abs(k - real_type(1)) <= detail::tolerance<real_type>()) {
-                        break;
-                    }
-                    phi = (std::asin(k*std::sin(phi)) + phi)/real_type(2);
-                    tmp *= real_type(2) / (real_type(1) + k);
-                    k = real_type(2) * std::sqrt(k)  /(real_type(1) + k);
-                    ++i;
+                if (std::abs((c - e3)/e3) <= detail::tolerance<real_type>()) {
+                    singular = true;
                 }
-                complex_type ell = std::log(real_type(1)/std::cos(phi)+std::tan(phi)) * tmp;
-                retval = ell / (real_type(2) * std::sqrt(H2));
             }
-            // Rotation for negative g3.
-            if (negative_g3) {
-                retval *= complex_type(real_type(0),-real_type(1));
+            complex_type k = std::sqrt((e2-e3)/(e1-e3)), phi(singular ? complex_type(real_type(0)) : std::asin(std::sqrt((e1-e3)/(c-e3)))),
+                tmp(real_type(1));
+            std::size_t i = 0u;
+            while (true) {
+                if (i == max_iter) {
+                    std::cout << "WARNING max_iter reached\n";
+                    break;
+                }
+                if (std::abs(k - real_type(1)) <= detail::tolerance<complex_type>()) {
+                    break;
+                }
+                if (!singular) {
+                    phi = (std::asin(k*std::sin(phi)) + phi)/real_type(2);
+                }
+                tmp *= real_type(2) / (real_type(1) + k);
+                k = real_type(2) * std::sqrt(k)  /(real_type(1) + k);
+                ++i;
             }
+            complex_type ell;
+            if (singular) {
+                // NOTE: strictly speaking, the sign of the factor here depends
+                // on the sign of the infinity generated above. But we are going
+                // to reduce to the fpp anyway, so the sign does not really matter.
+                ell = complex_type(0,pi_const/real_type(2)) * tmp;
+            } else {
+                ell = std::log(real_type(1)/std::cos(phi)+std::tan(phi)) * tmp;
+            }
+            complex_type retval = ell / std::sqrt(e1-e3);
             // Reduction to the fundamental cell.
             auto ab = reduce_to_fc(retval);
             real_type alpha = std::get<0>(ab) - std::floor(std::get<0>(ab)),
                 beta = std::get<1>(ab) - std::floor(std::get<1>(ab));
             retval = alpha * m_periods[0].real() + beta * m_periods[1];
-            // The idea here is that we want to try to produce a purely real value if applicable, for use
-            // in those applications where this is important (e.g., calculating the time of root passage
-            // in Stark/Euler problems).
-            if (std::abs(beta) <= detail::tolerance<real_type>()) {
-                retval = complex_type(retval.real(),real_type(0));
-            }
-            // A value close to the upper side of the cell is also approximately real.
-            if (std::abs(beta-real_type(1)) <= detail::tolerance<real_type>()) {
-                retval -= m_periods[1];
-                retval = complex_type(retval.real(),real_type(0));
-            }
             // Pick the value with the smallest imaginary part.
             auto alt_retval = -retval + m_periods[0].real() + m_periods[1];
             if (alt_retval.imag() < retval.imag()) {
