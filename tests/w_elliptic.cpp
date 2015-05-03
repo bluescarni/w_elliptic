@@ -849,8 +849,139 @@ BOOST_AUTO_TEST_CASE(test_13)
     std::cout << "\n\n\n";
 }
 
+struct tester_14
+{
+    template <typename RealType>
+    void operator()(const RealType &)
+    {
+        std::cout << "Testing type: " << typeid(RealType).name() << '\n';
+        using real_type = RealType;
+        std::uniform_real_distribution<double> g2dist(-10.,20.);
+        std::uniform_real_distribution<double> g3dist(-10.,10.);
+        std::uniform_real_distribution<double> xdist(-10.,10.);
+        real_type max_P_err = 0., max_g2 = 0., max_g3 = 0., acc_err = 0., max_x = 0., max_Pp = 0.;
+        unsigned long counter = 0;
+        for (int i = 0; i < 20; ++i) {
+            real_type g2(static_cast<real_type>(g2dist(rng))), g3(static_cast<real_type>(g3dist(rng)));
+            we<real_type> w(g2,g3);
+            for (std::size_t j = 0; j < 1000u; ++j) {
+                real_type tmp = static_cast<real_type>(w.periods()[0].real() * xdist(rng));
+                auto P = w.P(tmp);
+                auto Pp = w.Pprime(tmp);
+                auto Ppc = real_type(4)*P*P*P-g2*P-g3;
+                auto err = std::abs((Pp*Pp-Ppc)/Ppc);
+                if (err > max_P_err) {
+                    max_P_err = err;
+                    max_g2 = g2;
+                    max_g3 = g3;
+                    max_x = tmp;
+                    max_Pp = Pp;
+                }
+                acc_err += err;
+                ++counter;
+            }
+        }
+        std::cout << "\tMax Pprime error: " << max_P_err << " @ [g2=" << max_g2 << ",g3=" << max_g3 << ",x=" << max_x  << ",Pp=" << max_Pp << "]\n";
+        std::cout << "\tAverage Pprime error: " << acc_err / real_type(counter) << '\n';
+    }
+};
+
 BOOST_AUTO_TEST_CASE(test_14)
 {
-    we<double> w(0.62709183536928115,-0.095570490579046416);
-    std::cout << w.Pinv(0.22860037855939774) << '\n';
+    std::cout << "Testing P-Pprime real consistency\n";
+    std::cout << "=================================\n";
+    boost::mpl::for_each<real_types>(tester_14());
+    std::cout << "\n\n\n";
+}
+
+struct tester_15
+{
+    template <typename RealType>
+    void operator()(const RealType &)
+    {
+        std::cout << "Testing type: " << typeid(RealType).name() << '\n';
+        using real_type = RealType;
+        using complex_type = typename we<real_type>::complex_type;
+        std::uniform_real_distribution<double> g2dist(-10.,20.);
+        std::uniform_real_distribution<double> g3dist(-10.,10.);
+        std::uniform_real_distribution<double> xdist(-10.,10.);
+        real_type max_P_err = 0., max_g2 = 0., max_g3 = 0., acc_err = 0.;
+        complex_type max_c = real_type(0.), max_Pp = real_type(0.);
+        unsigned long counter = 0;
+        for (int i = 0; i < 20; ++i) {
+            real_type g2(static_cast<real_type>(g2dist(rng))), g3(static_cast<real_type>(g3dist(rng)));
+            we<real_type> w(g2,g3);
+            for (std::size_t j = 0; j < 1000u; ++j) {
+                complex_type tmp = w.periods()[0] * static_cast<real_type>(xdist(rng)) + w.periods()[1] * static_cast<real_type>(xdist(rng));
+                auto P = w.P(tmp);
+                auto Pp = w.Pprime(tmp);
+                auto Ppc = real_type(4)*P*P*P-g2*P-g3;
+                auto err = std::abs((Pp*Pp-Ppc)/Ppc);
+                if (err > max_P_err) {
+                    max_P_err = err;
+                    max_g2 = g2;
+                    max_g3 = g3;
+                    max_c = tmp;
+                    max_Pp = Pp;
+                }
+                acc_err += err;
+                ++counter;
+            }
+        }
+        std::cout << "\tMax Pprime error: " << max_P_err << " @ [g2=" << max_g2 << ",g3=" << max_g3 << ",c=" << max_c  << ",Pp=" << max_Pp << "]\n";
+        std::cout << "\tAverage Pprime error: " << acc_err / real_type(counter) << '\n';
+    }
+};
+
+BOOST_AUTO_TEST_CASE(test_15)
+{
+    std::cout << "Testing P-Pprime complex consistency\n";
+    std::cout << "====================================\n";
+    boost::mpl::for_each<real_types>(tester_15());
+    std::cout << "\n\n\n";
+}
+
+struct tester_16
+{
+    template <typename RealType>
+    void operator()(const RealType &)
+    {
+        std::cout << "Testing type: " << typeid(RealType).name() << '\n';
+        using real_type = RealType;
+        using complex_type = typename we<real_type>::complex_type;
+        std::uniform_real_distribution<double> g2dist(-10.,20.);
+        std::uniform_real_distribution<double> g3dist(-10.,10.);
+        real_type max_err = 0., max_g2 = 0., max_g3 = 0., acc_err = 0.;
+        complex_type max_c = real_type(0);
+        unsigned long counter = 0;
+        for (int i = 0; i < 2000; ++i) {
+            real_type g2(static_cast<real_type>(g2dist(rng))), g3(static_cast<real_type>(g3dist(rng)));
+            we<real_type> w(g2,g3);
+            std::array<complex_type,3u> values;
+            values[0] = w.Pprime(w.periods()[0]/real_type(2));
+            values[1] = w.Pprime((w.periods()[0]+w.periods()[1])/real_type(2));
+            values[2] = w.Pprime(w.periods()[1]/real_type(2));
+            for (std::size_t j = 0u; j < 3u; ++j) {
+                auto err = std::abs(values[j]);
+                if (err > max_err) {
+                    max_err = err;
+                    max_g2 = g2;
+                    max_g3 = g3;
+                    max_c = values[j];
+                }
+                acc_err += err;
+                ++counter;
+            }
+        }
+        std::cout << "\tMax Pprime error: " << max_err << " @ [g2=" << max_g2 << ",g3=" << max_g3 << ",c=" << max_c << "]\n";
+        std::cout << "\tAverage Pprime error: " << acc_err / real_type(counter) << '\n';
+    }
+};
+
+BOOST_AUTO_TEST_CASE(test_16)
+{
+    std::cout << "Testing Pprime zeroes\n";
+    std::cout << "=====================\n";
+    boost::mpl::for_each<real_types>(tester_16());
+    std::cout << "\n\n\n";
 }
