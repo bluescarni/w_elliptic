@@ -115,7 +115,9 @@ static std::vector<std::vector<std::string>> test_11_data = read_data("../tests/
 // RNG.
 static std::mt19937 rng;
 
-typedef boost::mpl::vector<float,double,long double> real_types;
+using real_types = boost::mpl::vector<float,double,long double>;
+// Tests with large invariants can fail in float.
+using hp_real_types = boost::mpl::vector<double,long double>;
 
 using size_type = std::vector<std::vector<std::string>>::size_type;
 
@@ -983,5 +985,68 @@ BOOST_AUTO_TEST_CASE(test_16)
     std::cout << "Testing Pprime zeroes\n";
     std::cout << "=====================\n";
     boost::mpl::for_each<real_types>(tester_16());
+    std::cout << "\n\n\n";
+}
+
+struct tester_17
+{
+    template <typename RealType>
+    void operator()(const RealType &)
+    {
+        std::cout << "Testing type: " << typeid(RealType).name() << '\n';
+        using real_type = RealType;
+        using complex_type = typename we<real_type>::complex_type;
+        we<real_type> w(real_type(1987895.2631983822),real_type(-539396800.471277));
+        std::uniform_real_distribution<double> xdist(0.,.5);
+        real_type max_err = 0., acc_err = 0.;
+        complex_type max_c = real_type(0), max_P = real_type(0);
+        unsigned long counter = 0;
+        for (int i = 0; i < 1000; ++i) {
+            // NOTE: the implementation of Pinv returns values in the FPP with imaginary part in the lower half.
+            auto tmp1 = real_type(xdist(rng)*2.)*w.periods()[0] + real_type(xdist(rng))*w.periods()[1];
+            auto P = w.P(tmp1);
+            auto Pinv = w.Pinv(P);
+            auto err = std::abs((Pinv-tmp1)/tmp1);
+            if (err > max_err) {
+                max_err = err;
+                max_c = tmp1;
+                max_P = P;
+            }
+            acc_err += err;
+            ++counter;
+        }
+        std::cout << "\tMax P/Pinv error: " << max_err << " @ [c=" << max_c << ",P=" << max_P << "]\n";
+        std::cout << "\tAverage P/Pinv error: " << acc_err / real_type(counter) << '\n';
+        std::uniform_real_distribution<double> rdist(-2.,2.);
+        max_err = 0.;
+        acc_err = 0.;
+        counter = 0;
+        for (int i = 0; i < 1000; ++i) {
+            complex_type z(real_type(rdist(rng))*w.periods()[0] + real_type(rdist(rng))*w.periods()[1]);
+            auto lnsigma_real = w.ln_sigma_real(z);
+            auto lnsigma_imag = w.ln_sigma_imag(z);
+            auto tmp = w.sigma(z);
+            if (!detail::isfinite(tmp)) {
+                continue;
+            }
+            auto lnsigma = std::log(tmp);
+            auto err = std::abs((std::exp(lnsigma)-std::exp(complex_type(lnsigma_real,lnsigma_imag)))/std::exp(lnsigma));
+            if (err > max_err) {
+                max_err = err;
+                max_c = z;
+            }
+            acc_err += err;
+            ++counter;
+        }
+        std::cout << "\tMax log(sigma) error: " << max_err << " @ [z=" << max_c << "]\n";
+        std::cout << "\tAverage log(sigma) error: " << acc_err / real_type(counter) << '\n';
+    }
+};
+
+BOOST_AUTO_TEST_CASE(test_17)
+{
+    std::cout << "Testing large invariants\n";
+    std::cout << "========================\n";
+    boost::mpl::for_each<hp_real_types>(tester_17());
     std::cout << "\n\n\n";
 }
