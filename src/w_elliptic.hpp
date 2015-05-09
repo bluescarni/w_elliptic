@@ -60,16 +60,6 @@ template <typename T>
 const bool is_complex<std::complex<T>>::value;
 
 template <typename T, typename = void>
-struct complex_t_impl
-{};
-
-template <typename T>
-struct complex_t_impl<T,typename std::enable_if<std::is_floating_point<T>::value>::type>
-{
-    using type = std::complex<T>;
-};
-
-template <typename T, typename = void>
 struct tolerance_impl
 {};
 
@@ -90,9 +80,6 @@ struct tolerance_impl<T,typename std::enable_if<is_complex<T>::value>::type>
         return std::numeric_limits<typename T::value_type>::epsilon();
     }
 };
-
-template <typename T>
-using complex_t = typename detail::complex_t_impl<T>::type;
 
 template <typename T>
 auto tolerance() -> decltype(detail::tolerance_impl<T>()())
@@ -137,20 +124,23 @@ bool isfinite(const std::complex<T> &c)
 // - move setup_q stuff into sigma_setup(),
 // - in series expansions, record the terms and re-accumulate them at the end in a way
 //   that minimises precision loss?
+/// Class for the computation of Weierstrass elliptic and related functions.
+/**
+ * This class is the main object to be used for the computation of Weierstrass elliptic and related
+ * functions. After construction from a pair of real invariants, it will be possible to call methods
+ * of this class to compute the desired functions.
+ *
+ * \tparam T a supported real type (currently, \p float, \p double and <tt>long double</tt>).
+ */
 template <typename T>
 class we
 {
     public:
+        /// Alias for \p T.
         using real_type = T;
-        using complex_type = detail::complex_t<real_type>;
+        /// The complex counterpart of \p T.
+        using complex_type = std::complex<real_type>;
     private:
-        // TODO: checks:
-        // - complex_t is defined,
-        // - operations on real do not switch to other types,
-        // - negation is supported,
-        // - streaming is supported,
-        // - construction of complex values from reals, and general interop with reals,
-        // - math functions.
         static_assert(!detail::is_complex<real_type>::value,"The invariants must be reals.");
         static_assert(std::is_constructible<real_type,std::size_t>::value,"The real type must be constructible from std::size_t.");
         static_assert(std::is_constructible<real_type,int>::value,"The real type must be constructible from int.");
