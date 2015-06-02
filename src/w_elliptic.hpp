@@ -29,6 +29,7 @@
 #include <iomanip>
 #include <iostream>
 #include <sstream>
+#include <stdexcept>
 #include <tuple>
 #include <type_traits>
 #include <utility>
@@ -146,6 +147,14 @@ class we
         static_assert(std::is_constructible<real_type,int>::value,"The real type must be constructible from int.");
         static const std::size_t max_iter = 100u;
         static const real_type pi_const;
+        // Helper function to raise an error when the number of iterations
+        // is too high.
+        static void iter_check(const std::size_t &n, const std::size_t &miter = max_iter)
+        {
+                if (n == miter) {
+                    throw std::invalid_argument("maximum number of iterations reached");
+                }
+        }
         // Coefficients for the ln sigma expansion.
         const real_type &ls_c(const std::size_t &k) const
         {
@@ -210,10 +219,7 @@ class we
                 if (std::abs(a - g) <= detail::tolerance<U>()) {
                     break;
                 }
-                if (i == max_iter) {
-                    std::cout << "WARNING max_iter reached\n";
-                    break;
-                }
+                iter_check(i);
                 U new_a = (a + g)/U(2);
                 U new_g = std::sqrt(a*g);
                 a = std::move(new_a);
@@ -301,10 +307,7 @@ class we
             bool stop2 = false, stop4 = false;
             std::size_t i = 1u, counter2 = 0u, counter4 = 0u;
             while (true) {
-                if (i == max_iter) {
-                    std::cout << "WARNING max_iter reached\n";
-                    break;
-                }
+                iter_check(i);
                 if (stop2 && stop4) {
                     break;
                 }
@@ -427,10 +430,7 @@ class we
             bool stop1 = false, stop2 = false;
             std::size_t i = 1u, counter1 = 0u, counter2 = 0u;
             while (true) {
-                if (i == max_iter) {
-                    std::cout << "WARNING max_iter reached\n";
-                    break;
-                }
+                iter_check(i);
                 if (stop1 && stop2) {
                     break;
                 }
@@ -472,10 +472,7 @@ class we
             real_type retval(m_t1p[0]);
             std::size_t i = 1u, counter = 0u;
             while (true) {
-                 if (i == max_iter) {
-                    std::cout << "WARNING max_iter reached\n";
-                    break;
-                }
+                iter_check(i);
                 real_type add = m_t1p[i];
                 retval += add;
                 if (stop_check<2>(retval,add,counter)) {
@@ -492,10 +489,7 @@ class we
             bool stop3 = false, stop1 = false;
             std::size_t i = 1u, counter3 = 0u, counter1 = 0u;
             while (true) {
-                if (i == max_iter) {
-                    std::cout << "WARNING max_iter reached\n";
-                    break;
-                }
+                iter_check(i);
                 if (stop1 && stop3) {
                     break;
                 }
@@ -531,10 +525,7 @@ class we
             std::size_t i = 0u, counter2 = 0u, counter1 = 0u;
             bool stop2 = false, stop1 = false;
             while (true) {
-                 if (i == max_iter) {
-                    std::cout << "WARNING max_iter reached\n";
-                    break;
-                }
+                iter_check(i);
                 if (stop1 && stop2) {
                     break;
                 }
@@ -573,10 +564,7 @@ class we
             std::size_t i = 0u, counter1 = 0u, counter2 = 0u, counter1p = 0u, counter2p = 0u;
             bool stop1 = false, stop2 = false, stop1p = false, stop2p = false;
             while (true) {
-                 if (i == max_iter) {
-                    std::cout << "WARNING max_iter reached\n";
-                    break;
-                }
+                iter_check(i);
                 if (stop1 && stop2 && stop1p && stop2p) {
                     break;
                 }
@@ -631,10 +619,7 @@ class we
             std::size_t i = 0u, counter1 = 0u, counter1p = 0u;
             bool stop1 = false, stop1p = false;
             while (true) {
-                 if (i == max_iter) {
-                    std::cout << "WARNING max_iter reached\n";
-                    break;
-                }
+                iter_check(i);
                 if (stop1 && stop1p) {
                     break;
                 }
@@ -672,10 +657,7 @@ class we
             U retval(0);
             std::size_t i = 0u, counter = 0u;
             while (true) {
-                 if (i == max_iter) {
-                    std::cout << "WARNING max_iter reached\n";
-                    break;
-                }
+                iter_check(i);
                 U add(m_t1[i]);
                 add *= Sn;
                 retval += add;
@@ -711,10 +693,7 @@ class we
             real_type C = std::cos(a), S = std::sin(a), Cn(1), Sn(0), Ch = std::cosh(b), Sh = std::sinh(b), Chn(1), Shn(0);
             real_type tmp_s, tmp_c, tmp_sh, tmp_ch, mul;
             while (true) {
-                if (i == miter) {
-                    std::cout << "WARNING max_iter reached\n";
-                    break;
-                }
+                iter_check(i,miter);
                 // These are just the addition formulae for trig and hyperbolic functions.
                 tmp_s = Sn*C+Cn*S;
                 tmp_c = Cn*C-Sn*S;
@@ -752,10 +731,7 @@ class we
             real_type C = std::cos(a), S = std::sin(a), Cn(1), Sn(0), Ch = std::cosh(b), Sh = std::sinh(b), Chn(1), Shn(0);
             real_type tmp_s, tmp_c, tmp_sh, tmp_ch, mul;
             while (true) {
-                if (i == miter) {
-                    std::cout << "WARNING max_iter reached\n";
-                    break;
-                }
+                iter_check(i,miter);
                 tmp_s = Sn*C+Cn*S;
                 tmp_c = Cn*C-Sn*S;
                 tmp_sh = Shn*Ch+Chn*Sh;
@@ -934,10 +910,7 @@ class we
                 tmp(real_type(1));
             std::size_t i = 0u;
             while (true) {
-                if (i == max_iter) {
-                    std::cout << "WARNING max_iter reached\n";
-                    break;
-                }
+                iter_check(i);
                 if (std::abs(k - real_type(1)) <= detail::tolerance<complex_type>()) {
                     break;
                 }
