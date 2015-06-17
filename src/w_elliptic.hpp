@@ -764,11 +764,14 @@ class we
         }
     public:
         // TODO:
-        // - finiteness checks,
+        // - finiteness checks -> testing still TBD.
         // - handle special cases -> singularities in the cubic roots computations, infinite periods,
         //   stuff like that.
         explicit we(const real_type &g2, const real_type &g3):m_invariants{{g2,g3}}
         {
+            if (!detail::isfinite(g2) || !detail::isfinite(g3)) {
+                throw std::invalid_argument("non-finite invariant(s)");
+            }
             // Calculation of the roots. Note that after this the roots
             // are stored in an unspecified order.
             calculate_roots(real_type(4),-g2,-g3);
