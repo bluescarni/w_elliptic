@@ -502,16 +502,18 @@ struct tester_08
             for (int j = 0; j < 1000; ++j) {
                 complex_type P(real_type(rdist(rng)),real_type(rdist(rng)));
                 auto Pinv = w.Pinv(P);
-                auto err = std::abs((P-w.P(Pinv))/P);
-                if (err > max_Pinv_err) {
-                    max_Pinv_err = err;
-                    max_g2 = g2;
-                    max_g3 = g3;
-                    max_P = P;
-                    max_P_inv = Pinv;
+                for (auto Pi: Pinv) {
+                    auto err = std::abs((P-w.P(Pi))/P);
+                    if (err > max_Pinv_err) {
+                        max_Pinv_err = err;
+                        max_g2 = g2;
+                        max_g3 = g3;
+                        max_P = P;
+                        max_P_inv = Pi;
+                    }
+                    acc_err += err;
+                    ++counter;
                 }
-                acc_err += err;
-                ++counter;
             }
         }
         // Add a couple of tests with g2/g3 == 0.
@@ -521,16 +523,18 @@ struct tester_08
             for (int j = 0; j < 1000; ++j) {
                 complex_type P(real_type(rdist(rng)),real_type(rdist(rng)));
                 auto Pinv = w.Pinv(P);
-                auto err = std::abs((P-w.P(Pinv))/P);
-                if (err > max_Pinv_err) {
-                    max_Pinv_err = err;
-                    max_g2 = g2;
-                    max_g3 = g3;
-                    max_P = P;
-                    max_P_inv = Pinv;
+                for (auto Pi: Pinv) {
+                    auto err = std::abs((P-w.P(Pi))/P);
+                    if (err > max_Pinv_err) {
+                        max_Pinv_err = err;
+                        max_g2 = g2;
+                        max_g3 = g3;
+                        max_P = P;
+                        max_P_inv = Pi;
+                    }
+                    acc_err += err;
+                    ++counter;
                 }
-                acc_err += err;
-                ++counter;
             }
         }
         for (int i = 0; i < 4; ++i) {
@@ -539,16 +543,18 @@ struct tester_08
             for (int j = 0; j < 1000; ++j) {
                 complex_type P(real_type(rdist(rng)),real_type(rdist(rng)));
                 auto Pinv = w.Pinv(P);
-                auto err = std::abs((P-w.P(Pinv))/P);
-                if (err > max_Pinv_err) {
-                    max_Pinv_err = err;
-                    max_g2 = g2;
-                    max_g3 = g3;
-                    max_P = P;
-                    max_P_inv = Pinv;
+                for (auto Pi: Pinv) {
+                    auto err = std::abs((P-w.P(Pi))/P);
+                    if (err > max_Pinv_err) {
+                        max_Pinv_err = err;
+                        max_g2 = g2;
+                        max_g3 = g3;
+                        max_P = P;
+                        max_P_inv = Pi;
+                    }
+                    acc_err += err;
+                    ++counter;
                 }
-                acc_err += err;
-                ++counter;
             }
         }
         std::cout << "\tMax Pinv error: " << max_Pinv_err << " @ [g2=" << max_g2 << ",g3=" << max_g3 << ",P=" << max_P  << ",Pinv=" << max_P_inv << "]\n";
@@ -807,13 +813,13 @@ struct tester_13
             for (std::size_t j = 0; j < 3u; ++j) {
                 auto P(w.roots()[j]);
                 auto Pinv = w.Pinv(P);
-                auto err = std::abs((P-w.P(Pinv))/P);
+                auto err = std::abs((P-w.P(Pinv[0]))/P);
                 if (err > max_Pinv_err) {
                     max_Pinv_err = err;
                     max_g2 = g2;
                     max_g3 = g3;
                     max_P = P;
-                    max_P_inv = Pinv;
+                    max_P_inv = Pinv[0];
                 }
                 acc_err += err;
                 ++counter;
@@ -826,13 +832,13 @@ struct tester_13
             for (std::size_t j = 0; j < 3u; ++j) {
                 auto P(w.roots()[j]);
                 auto Pinv = w.Pinv(P);
-                auto err = std::abs((P-w.P(Pinv))/P);
+                auto err = std::abs((P-w.P(Pinv[0]))/P);
                 if (err > max_Pinv_err) {
                     max_Pinv_err = err;
                     max_g2 = g2;
                     max_g3 = g3;
                     max_P = P;
-                    max_P_inv = Pinv;
+                    max_P_inv = Pinv[0];
                 }
                 acc_err += err;
                 ++counter;
@@ -1006,7 +1012,7 @@ struct tester_17
             auto tmp1 = real_type(xdist(rng)*2.)*w.periods()[0] + real_type(xdist(rng))*w.periods()[1];
             auto P = w.P(tmp1);
             auto Pinv = w.Pinv(P);
-            auto err = std::abs((Pinv-tmp1)/tmp1);
+            auto err = std::abs((Pinv[0]-tmp1)/tmp1);
             if (err > max_err) {
                 max_err = err;
                 max_c = tmp1;

@@ -80,6 +80,13 @@ static inline bp::tuple get_etas(const we<T> &w)
     return bp::make_tuple(w.etas()[0],w.etas()[1]);
 }
 
+template <typename T>
+static inline bp::tuple Pinv_wrapper(const we<T> &w, const typename we<T>::complex_type &c)
+{
+    auto res = w.Pinv(c);
+    return bp::make_tuple(res[0],res[1]);
+}
+
 BOOST_PYTHON_MODULE(_core)
 {
     using we_type = we<double>;
@@ -102,7 +109,7 @@ BOOST_PYTHON_MODULE(_core)
     we_class.def("sigma",real_1(&we_type::sigma));
     we_class.def("ln_sigma_real",&we_type::ln_sigma_real);
     we_class.def("ln_sigma_imag",&we_type::ln_sigma_imag);
-    we_class.def("Pinv",&we_type::Pinv);
+    we_class.def("Pinv",Pinv_wrapper<we_type::real_type>);
 
     // Getters.
     we_class.add_property("invariants",get_invariants<real_type>);

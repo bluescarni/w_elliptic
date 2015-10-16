@@ -892,7 +892,7 @@ class we
             return std::log(sigma(c)).imag();
         }
         // Inversion of DLMF 23.6.21.
-        complex_type Pinv(const complex_type &c) const
+        std::array<complex_type,2> Pinv(const complex_type &c) const
         {
             complex_type e1, e2, e3;
             e1 = m_roots[0];
@@ -939,12 +939,12 @@ class we
             real_type alpha = std::get<0>(ab) - std::floor(std::get<0>(ab)),
                 beta = std::get<1>(ab) - std::floor(std::get<1>(ab));
             retval = alpha * m_periods[0].real() + beta * m_periods[1];
-            // Pick the value with the smallest imaginary part.
+            // Pick the value with the smallest imaginary part as first return value.
             auto alt_retval = -retval + m_periods[0].real() + m_periods[1];
             if (alt_retval.imag() < retval.imag()) {
-                retval = alt_retval;
+                std::swap(retval,alt_retval);
             }
-            return retval;
+            return std::array<complex_type,2>{retval,alt_retval};
         }
     private:
         std::array<real_type,2>                     m_invariants;
