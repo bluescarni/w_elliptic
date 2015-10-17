@@ -944,7 +944,18 @@ class we
             if (alt_retval.imag() < retval.imag()) {
                 std::swap(retval,alt_retval);
             }
-            return std::array<complex_type,2>{retval,alt_retval};
+            if (c.imag() == real_type(0) && c.real() >= e1.real()) {
+                // If the argument is purely real and >= the min value of
+                // P on the real axis, we are sure the result will be purely real.
+                // NOTE: the DLMF convention on root ordering implies that e1 = P(om_1),
+                // where om_1 is the real half-period (23.3.9).
+                std::array<complex_type,2> ret{complex_type(retval.real(),real_type(0)),complex_type(-retval.real()+m_periods[0].real(),real_type(0))};
+                // Sort them according to the real part.
+                std::sort(ret.begin(),ret.end(),[](const complex_type &c1, const complex_type &c2) {return c1.real() < c2.real();});
+                return ret;
+            } else {
+                return std::array<complex_type,2>{retval,alt_retval};
+            }
         }
     private:
         std::array<real_type,2>                     m_invariants;
