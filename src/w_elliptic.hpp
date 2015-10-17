@@ -177,8 +177,8 @@ class we
             complex_type delta0 = complex_type(real_type(-3)) * complex_type(a) * complex_type(c),
                 delta1 = complex_type(real_type(27)) * complex_type(a) * complex_type(a) * complex_type(d);
             // Cube root function for complex types.
-            auto cbrt = [](const complex_type &c) {
-                return std::pow(c,complex_type(real_type(1)/real_type(3)));
+            auto cbrt = [](const complex_type &cm) {
+                return std::pow(cm,complex_type(real_type(1)/real_type(3)));
             };
             complex_type C1 = cbrt((delta1 + std::sqrt(delta1 * delta1 - complex_type(real_type(4)) * delta0 * delta0 * delta0)) / real_type(2));
             complex_type C2 = cbrt((delta1 - std::sqrt(delta1 * delta1 - complex_type(real_type(4)) * delta0 * delta0 * delta0)) / real_type(2));
@@ -202,8 +202,8 @@ class we
                     return c1.real() > c2.real();
                 });
                 // All the roots are real.
-                std::for_each(m_roots.begin(),m_roots.end(),[](complex_type &c) {
-                    c = complex_type(c.real(),real_type(0));
+                std::for_each(m_roots.begin(),m_roots.end(),[](complex_type &cm) {
+                    cm = complex_type(cm.real(),real_type(0));
                 });
             }
         }
@@ -679,7 +679,6 @@ class we
         // Continuous implementations of the real/imag parts of ln sigma.
         real_type ln_sigma_imag_cont(const complex_type &c) const
         {
-            const real_type om1 = m_periods[0].real()/real_type(2);
             // Reduce to the fundamental real period.
             real_type N(std::floor(c.real()/m_periods[0].real()));
             complex_type cred_F(c.real() - N*m_periods[0].real(),c.imag());
@@ -949,12 +948,12 @@ class we
                 // P on the real axis, we are sure the result will be purely real.
                 // NOTE: the DLMF convention on root ordering implies that e1 = P(om_1),
                 // where om_1 is the real half-period (23.3.9).
-                std::array<complex_type,2> ret{complex_type(retval.real(),real_type(0)),complex_type(-retval.real()+m_periods[0].real(),real_type(0))};
+                std::array<complex_type,2> ret{{complex_type(retval.real(),real_type(0)),complex_type(-retval.real()+m_periods[0].real(),real_type(0))}};
                 // Sort them according to the real part.
                 std::sort(ret.begin(),ret.end(),[](const complex_type &c1, const complex_type &c2) {return c1.real() < c2.real();});
                 return ret;
             } else {
-                return std::array<complex_type,2>{retval,alt_retval};
+                return std::array<complex_type,2>{{retval,alt_retval}};
             }
         }
     private:
