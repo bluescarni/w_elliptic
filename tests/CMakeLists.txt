@@ -26,3 +26,9 @@ macro(ADD_W_ELLIPTIC_PERFORMANCE_TESTCASE arg1)
 endmacro()
 
 ADD_W_ELLIPTIC_TESTCASE(w_elliptic)
+
+# Add the example separately, as it needs a special -D.
+add_executable(example example.cpp)
+target_include_directories(example PUBLIC "${CMAKE_SOURCE_DIR}/src")
+target_link_libraries(example ${MANDATORY_LIBRARIES})
+add_test(example example)

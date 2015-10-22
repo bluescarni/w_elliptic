@@ -142,9 +142,9 @@ class we
         static_assert(detail::is_supported<T>::value,"Unsupported type.");
     public:
         /// Alias for \p T.
-        using real_type = T;
+        typedef T real_type;
         /// The complex counterpart of \p T.
-        using complex_type = std::complex<real_type>;
+        typedef std::complex<real_type> complex_type;
     private:
         static const std::size_t max_iter = 100u;
         static const real_type pi_const;
@@ -833,9 +833,9 @@ class we
          * e_1+e_2+e_3 = 0.
          * \f]
          *
-         * @see http://dlmf.nist.gov/23.3#i
-         *
          * @return a const reference to the array of roots of the Weierstrass cubic.
+         *
+         * @see http://dlmf.nist.gov/23.3#i
          */
         const std::array<complex_type,3> &roots() const
         {
@@ -859,7 +859,7 @@ class we
          * - \f$2\omega_3\f$ is always complex, with a positive imaginary part,
          * - if \f$2\omega_3\f$ is not purely imaginary, then its real part is \f$\omega_1\f$.
          *
-         * These two properties imply that \f$\Im\left(\omega_3/\omega_1\right)>0\f$. The half-periods \f$\omega_1\f$ and \f$\omega_3\f$ satisfy the property
+         * The first two properties imply that \f$\Im\left(\omega_3/\omega_1\right)>0\f$. The half-periods \f$\omega_1\f$ and \f$\omega_3\f$ satisfy the property
          *
          * \f[
          * e_j=\wp\left(\omega_j\right),
@@ -868,12 +868,14 @@ class we
          * where the \f$e_j\f$ are the roots of the Weierstrass cubic (see we::roots()). The third half-period \f$\omega_2\f$ is defined as
          *
          * \f[
-         * \omega_2=-\omega_1-\omega_3.
+         * \omega_2=-\omega_1-\omega_3,
          * \f]
          *
-         * @see http://dlmf.nist.gov/23.2#i
+         * and it also satisfies the property \f$e_2=\wp\left(\omega_2\right)\f$.
          *
-         *  @return a const reference to the array of periods.
+         * @return a const reference to the array of periods.
+         *
+         * @see http://dlmf.nist.gov/23.2#i
          */
         const std::array<complex_type,2> &periods() const
         {
@@ -892,10 +894,10 @@ class we
          * These constants are used internally in the computation of the Weierstrassian functions. The first eta constant, \f$\eta_1\f$,
          * is guaranteed to be purely real.
          *
+         * @return a const reference to the array of eta constants.
+         *
          * @see http://dlmf.nist.gov/23.2#iii
          * @see http://dlmf.nist.gov/23.6#i
-         *
-         * @return a const reference to the array of eta constants.
          */
         const std::array<complex_type,2> &etas() const
         {
