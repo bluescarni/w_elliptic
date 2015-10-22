@@ -1,0 +1,305 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>Welcome to w_elliptic’s documentation! &mdash; w_elliptic 0.1 documentation</title>
+  
+
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  
+  
+    <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  
+
+  
+
+  
+    <link rel="top" title="w_elliptic 0.1 documentation" href="#"/>
+        <link rel="next" title="C++ Reference" href="cpp_docs.html"/> 
+
+  
+  <script src="_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-nav-search">
+        
+
+        
+          <a href="#" class="icon icon-home"> w_elliptic
+        
+
+        
+        </a>
+
+        
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+        
+      </div>
+
+      <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+        
+          
+          
+              <ul>
+<li class="toctree-l1"><a class="reference internal" href="cpp_docs.html">C++ Reference</a></li>
+</ul>
+
+          
+        
+      </div>
+      &nbsp;
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+        <a href="#">w_elliptic</a>
+      </nav>
+
+
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="#">Docs</a> &raquo;</li>
+      
+    <li>Welcome to w_elliptic&#8217;s documentation!</li>
+      <li class="wy-breadcrumbs-aside">
+        
+          
+            <a href="_sources/index.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document">
+            
+  <div class="section" id="welcome-to-w-elliptic-s-documentation">
+<h1>Welcome to w_elliptic&#8217;s documentation!<a class="headerlink" href="#welcome-to-w-elliptic-s-documentation" title="Permalink to this headline">¶</a></h1>
+<p>w_elliptic is a small, header-only C++11 library for the computation of <a class="reference external" href="https://en.wikipedia.org/wiki/Weierstrass%27s_elliptic_functions">Weierstrass elliptic</a>
+and related functions. The library has been developed with a particular focus on the application to dynamical systems,
+and it offers the following features:</p>
+<ul class="simple">
+<li>it allows the definition of Weierstrassian functions in terms of real invariants <span class="math">\(g_2\)</span> and <span class="math">\(g_3\)</span>;</li>
+<li>the Weierstrassian functions <span class="math">\(\wp\)</span>, <span class="math">\(\wp^\prime\)</span>, <span class="math">\(\zeta\)</span>, <span class="math">\(\sigma\)</span> and <span class="math">\(\wp^{-1}\)</span>
+are supported;</li>
+<li>for each function (apart from <span class="math">\(\wp^{-1}\)</span>) two overloads are available, one with complex argument and one with real argument. The real
+argument overload will use only real arithmetic;</li>
+<li>the three standard C++ floating-point types (<code class="docutils literal"><span class="pre">float</span></code>, <code class="docutils literal"><span class="pre">double</span></code> and <code class="docutils literal"><span class="pre">long</span> <span class="pre">double</span></code>) are supported.</li>
+</ul>
+<div class="section" id="quickstart">
+<h2>Quickstart<a class="headerlink" href="#quickstart" title="Permalink to this headline">¶</a></h2>
+<p>Here follows a simple usage example for the library:</p>
+<div class="highlight-c++"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre> 1
+ 2
+ 3
+ 4
+ 5
+ 6
+ 7
+ 8
+ 9
+10
+11
+12
+13
+14
+15
+16
+17
+18
+19
+20
+21
+22
+23
+24
+25
+26
+27
+28
+29
+30
+31
+32
+33
+34
+35
+36
+37
+38
+39
+40
+41
+42</pre></div></td><td class="code"><div class="highlight"><pre><span class="cp">#include &lt;complex&gt;</span>
+<span class="cp">#include &lt;iostream&gt;</span>
+
+<span class="c1">// Include the w_elliptic.hpp header.</span>
+<span class="cp">#include &quot;w_elliptic.hpp&quot;</span>
+
+<span class="kt">int</span> <span class="nf">main</span><span class="p">()</span>
+<span class="p">{</span>
+    <span class="c1">// Initialise a class for the computation of the Weierstrassian functions</span>
+    <span class="c1">// in double precision, with real invariants g2 = 1 and g3 = 2.</span>
+    <span class="n">w_elliptic</span><span class="o">::</span><span class="n">we</span><span class="o">&lt;</span><span class="kt">double</span><span class="o">&gt;</span> <span class="n">w</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="mi">2</span><span class="p">);</span>
+
+    <span class="c1">// Computation of P with real argument.</span>
+    <span class="n">std</span><span class="o">::</span><span class="n">cout</span> <span class="o">&lt;&lt;</span> <span class="n">w</span><span class="p">.</span><span class="n">P</span><span class="p">(</span><span class="mf">1.2</span><span class="p">)</span> <span class="o">&lt;&lt;</span> <span class="sc">&#39;\n&#39;</span><span class="p">;</span>
+    <span class="c1">// Output: 0.923915...</span>
+
+    <span class="c1">// Computation of P with complex argument.</span>
+    <span class="n">std</span><span class="o">::</span><span class="n">cout</span> <span class="o">&lt;&lt;</span> <span class="n">w</span><span class="p">.</span><span class="n">P</span><span class="p">(</span><span class="n">std</span><span class="o">::</span><span class="n">complex</span><span class="o">&lt;</span><span class="kt">double</span><span class="o">&gt;</span><span class="p">(</span><span class="mf">1.2</span><span class="p">,</span><span class="mf">3.4</span><span class="p">))</span> <span class="o">&lt;&lt;</span> <span class="sc">&#39;\n&#39;</span><span class="p">;</span>
+    <span class="c1">// Output: (-1.07706...+0.268321...j)</span>
+
+    <span class="c1">// Computation of zeta with real argument.</span>
+    <span class="n">std</span><span class="o">::</span><span class="n">cout</span> <span class="o">&lt;&lt;</span> <span class="n">w</span><span class="p">.</span><span class="n">zeta</span><span class="p">(</span><span class="mf">0.12</span><span class="p">)</span> <span class="o">&lt;&lt;</span> <span class="sc">&#39;\n&#39;</span><span class="p">;</span>
+    <span class="c1">// Output: 8.33330...</span>
+
+    <span class="c1">// Computation of inverse P: will yield a pair of values in the</span>
+    <span class="c1">// fundamental parallelogram.</span>
+    <span class="k">auto</span> <span class="n">Pinv</span> <span class="o">=</span> <span class="n">w</span><span class="p">.</span><span class="n">Pinv</span><span class="p">(</span><span class="o">-</span><span class="mf">4.</span><span class="p">);</span>
+    <span class="n">std</span><span class="o">::</span><span class="n">cout</span> <span class="o">&lt;&lt;</span> <span class="n">Pinv</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">&lt;&lt;</span> <span class="sc">&#39;\n&#39;</span><span class="p">;</span>
+    <span class="c1">// Output: (2.61673...+0.500504...j)</span>
+    <span class="n">std</span><span class="o">::</span><span class="n">cout</span> <span class="o">&lt;&lt;</span> <span class="n">Pinv</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">&lt;&lt;</span> <span class="sc">&#39;\n&#39;</span><span class="p">;</span>
+    <span class="c1">// Output: (1.30836...+1.95823...j)</span>
+
+    <span class="c1">// Print a human-readable summary of the &#39;w&#39; object:</span>
+    <span class="n">std</span><span class="o">::</span><span class="n">cout</span> <span class="o">&lt;&lt;</span> <span class="n">w</span> <span class="o">&lt;&lt;</span> <span class="sc">&#39;\n&#39;</span><span class="p">;</span>
+    <span class="c1">// Output:</span>
+    <span class="c1">// Invariants: [1,2]</span>
+    <span class="c1">// Delta: -1712</span>
+    <span class="c1">// Roots: [(0.898160...,0),(-0.449080...,0.595835...),(-0.449080...,-0.595835...)]</span>
+    <span class="c1">// Periods: [(2.61673...,0),(1.30836...,2.45874...)]</span>
+    <span class="c1">// etas: [(0.669458...,0),(0.334729...,-0.571542...)]</span>
+    <span class="c1">// q: (0,0.0522398...)</span>
+<span class="p">}</span>
+</pre></div>
+</td></tr></table></div>
+</div>
+<div class="section" id="installation">
+<h2>Installation<a class="headerlink" href="#installation" title="Permalink to this headline">¶</a></h2>
+<p>The library does not have any dependency, apart from a C++ compiler that understands C++11. As a header-only library,
+you will only need to include the <code class="docutils literal"><span class="pre">w_elliptic.hpp</span></code> header to start using it, no linking is needed.</p>
+</div>
+<div class="section" id="limitations">
+<h2>Limitations<a class="headerlink" href="#limitations" title="Permalink to this headline">¶</a></h2>
+<p>The library currently does not support neither complex invariants, nor the definition of Weierstrassian functions in terms of periods
+(rather than invariants).</p>
+</div>
+</div>
+<div class="section" id="contents">
+<h1>Contents:<a class="headerlink" href="#contents" title="Permalink to this headline">¶</a></h1>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="cpp_docs.html">C++ Reference</a></li>
+</ul>
+</div>
+</div>
+<div class="section" id="indices-and-tables">
+<h1>Indices and tables<a class="headerlink" href="#indices-and-tables" title="Permalink to this headline">¶</a></h1>
+<ul class="simple">
+<li><a class="reference internal" href="genindex.html"><span>Index</span></a></li>
+</ul>
+</div>
+
+
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="cpp_docs.html" class="btn btn-neutral float-right" title="C++ Reference" accesskey="n">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2015, Francesco Biscani.
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'./',
+            VERSION:'0.1',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true
+        };
+    </script>
+      <script type="text/javascript" src="_static/jquery.js"></script>
+      <script type="text/javascript" src="_static/underscore.js"></script>
+      <script type="text/javascript" src="_static/doctools.js"></script>
+      <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="_static/js/theme.js"></script>
+  
+
+  
+  
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.StickyNav.enable();
+      });
+  </script>
+   
+
+</body>
+</html>

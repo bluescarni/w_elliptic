@@ -1,0 +1,704 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>C++ Reference &mdash; w_elliptic 0.1 documentation</title>
+  
+
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  
+  
+    <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  
+
+  
+
+  
+    <link rel="top" title="w_elliptic 0.1 documentation" href="index.html"/>
+        <link rel="prev" title="Welcome to w_elliptic’s documentation!" href="index.html"/> 
+
+  
+  <script src="_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-nav-search">
+        
+
+        
+          <a href="index.html" class="icon icon-home"> w_elliptic
+        
+
+        
+        </a>
+
+        
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+        
+      </div>
+
+      <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+        
+          
+          
+              <ul class="current">
+<li class="toctree-l1 current"><a class="current reference internal" href="">C++ Reference</a></li>
+</ul>
+
+          
+        
+      </div>
+      &nbsp;
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+        <a href="index.html">w_elliptic</a>
+      </nav>
+
+
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="index.html">Docs</a> &raquo;</li>
+      
+    <li>C++ Reference</li>
+      <li class="wy-breadcrumbs-aside">
+        
+          
+            <a href="_sources/cpp_docs.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document">
+            
+  <div class="section" id="c-reference">
+<h1>C++ Reference<a class="headerlink" href="#c-reference" title="Permalink to this headline">¶</a></h1>
+<p>Here follows the full C++ API reference, which currently consists of a single class <a class="reference internal" href="#_CPPv2N10w_elliptic2weE" title="w_elliptic::we"><code class="xref cpp cpp-class docutils literal"><span class="pre">w_elliptic::we</span></code></a>
+nested in the namespace <code class="docutils literal"><span class="pre">w_elliptic</span></code>. The documentation is automatically generated from the source code
+using <a class="reference external" href="http://www.stack.nl/~dimitri/doxygen/">Doxygen</a> and the <a class="reference external" href="https://github.com/michaeljones/breathe">Breathe</a>
+extension for <a class="reference external" href="http://sphinx-doc.org/">Sphinx</a>.</p>
+<dl class="class">
+<dt>
+<span class="target" id="project0classw__elliptic_1_1we"></span>template &lt;typename <em>T</em>&gt;</dt>
+<dt id="_CPPv2N10w_elliptic2weE">
+<span id="w_elliptic::we"></span><em class="property">class </em><code class="descclassname">w_elliptic::</code><code class="descname">we</code><a class="headerlink" href="#_CPPv2N10w_elliptic2weE" title="Permalink to this definition">¶</a></dt>
+<dd><p>Class for the computation of Weierstrass elliptic and related functions. </p>
+<p>
+This class is the main object to be used for the computation of Weierstrass elliptic and related functions. After construction from a pair of real invariants, it will be possible to call methods of this class to compute the desired functions.<dl class="docutils">
+<dt><strong>Templates</strong></dt>
+<dd><ul class="breatheparameterlist first last">
+<li><code class="first docutils literal"><span class="pre">T</span></code> - <p>a supported real type (currently, <code class="docutils literal"><span class="pre">float</span></code>, <code class="docutils literal"><span class="pre">double</span></code> and <code class="docutils literal"><span class="pre">long</span> <span class="pre">double</span></code>).</p>
+</li>
+</ul>
+</dd>
+</dl>
+</p>
+<p>The functionality of this class is built upon series expansions which have an implementation-defined hard limit for the number of iterations. Whenever this limit is reached, an <code class="docutils literal"><span class="pre">std::runtime_error</span></code> exception will be thrown.</p>
+<p>Unless otherwise noted, this class adopts the DLMF conventions: <a class="reference external" href="http://dlmf.nist.gov/23">http://dlmf.nist.gov/23</a>. </p>
+<div class="breathe-sectiondef container">
+<p class="breathe-sectiondef-title rubric">Public Types</p>
+<dl class="type">
+<dt id="_CPPv2N10w_elliptic2we9real_typeE">
+<span id="w_elliptic::we::real_type"></span><span class="target" id="project0classw__elliptic_1_1we_1a13139f2fa6d72073baa8c2f4eb52784f"></span><em class="property">typedef </em>T <code class="descname">real_type</code><a class="headerlink" href="#_CPPv2N10w_elliptic2we9real_typeE" title="Permalink to this definition">¶</a></dt>
+<dd><p>Alias for <code class="docutils literal"><span class="pre">T</span></code>. </p>
+</dd></dl>
+
+<dl class="type">
+<dt id="_CPPv2N10w_elliptic2we12complex_typeE">
+<span id="w_elliptic::we::complex_type"></span><span class="target" id="project0classw__elliptic_1_1we_1aa6ac30b68b89a186be5ce952ebb2e3ee"></span><em class="property">typedef </em>std::complex&lt;<a class="reference internal" href="#_CPPv2N10w_elliptic2we9real_typeE" title="w_elliptic::we::real_type">real_type</a>&gt; <code class="descname">complex_type</code><a class="headerlink" href="#_CPPv2N10w_elliptic2we12complex_typeE" title="Permalink to this definition">¶</a></dt>
+<dd><p>The complex counterpart of <code class="docutils literal"><span class="pre">T</span></code>. </p>
+</dd></dl>
+
+</div>
+<div class="breathe-sectiondef container">
+<p class="breathe-sectiondef-title rubric">Public Functions</p>
+<dl class="function">
+<dt id="_CPPv2N10w_elliptic2we2weERK9real_typeRK9real_type">
+<span id="w_elliptic::we::we__real_typeCR.real_typeCR"></span><span class="target" id="project0classw__elliptic_1_1we_1a6a5011d0ccd2e39defbd904afe6c4a41"></span><code class="descname">we</code><span class="sig-paren">(</span><em class="property">const</em> <a class="reference internal" href="#_CPPv2N10w_elliptic2we9real_typeE" title="w_elliptic::we::real_type">real_type</a> &amp;<em>g2</em>, <em class="property">const</em> <a class="reference internal" href="#_CPPv2N10w_elliptic2we9real_typeE" title="w_elliptic::we::real_type">real_type</a> &amp;<em>g3</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv2N10w_elliptic2we2weERK9real_typeRK9real_type" title="Permalink to this definition">¶</a></dt>
+<dd><p>Constructor from invariants. </p>
+<p>This constructor will initialise the object for the computation of Weierstrass elliptic and related functions defined in terms of the real invariants <code class="docutils literal"><span class="pre">g2</span></code> and <code class="docutils literal"><span class="pre">g3</span></code>.</p>
+<p><dl class="docutils">
+<dt><strong>Parameters</strong></dt>
+<dd><ul class="breatheparameterlist first last">
+<li><code class="first docutils literal"><span class="pre">g2</span></code> - <p>the first invariant. </p>
+</li>
+<li><code class="first docutils literal"><span class="pre">g3</span></code> - <p>the second invariant.</p>
+</li>
+</ul>
+</dd>
+<dt><strong>Exceptions</strong></dt>
+<dd><ul class="breatheparameterlist first last">
+<li><code class="first docutils literal"><span class="pre">std::invalid_argument</span></code> - <p>if <code class="docutils literal"><span class="pre">g2</span></code> and/or <code class="docutils literal"><span class="pre">g3</span></code> are not finite. </p>
+</li>
+</ul>
+</dd>
+</dl>
+</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="_CPPv2N10w_elliptic2we2weERK2we">
+<span id="w_elliptic::we::we__weCR"></span><span class="target" id="project0classw__elliptic_1_1we_1a21fc3cb83e6d19824d891c6a441e5afb"></span><code class="descname">we</code><span class="sig-paren">(</span><em class="property">const</em> <a class="reference internal" href="#_CPPv2N10w_elliptic2we2weERK9real_typeRK9real_type" title="w_elliptic::we::we">we</a>&amp;<span class="sig-paren">)</span><a class="headerlink" href="#_CPPv2N10w_elliptic2we2weERK2we" title="Permalink to this definition">¶</a></dt>
+<dd><p>Defaulted copy constructor. </p>
+</dd></dl>
+
+<dl class="function">
+<dt id="_CPPv2N10w_elliptic2we2weERR2we">
+<span id="w_elliptic::we::we__weRR"></span><span class="target" id="project0classw__elliptic_1_1we_1a9e5640fa455bfc2f21c28ceca7b3ae81"></span><code class="descname">we</code><span class="sig-paren">(</span><a class="reference internal" href="#_CPPv2N10w_elliptic2we2weERK9real_typeRK9real_type" title="w_elliptic::we::we">we</a>&amp;&amp;<span class="sig-paren">)</span><a class="headerlink" href="#_CPPv2N10w_elliptic2we2weERR2we" title="Permalink to this definition">¶</a></dt>
+<dd><p>Defaulted move constructor. </p>
+</dd></dl>
+
+<dl class="function">
+<dt id="_CPPv2N10w_elliptic2weaSERK2we">
+<span id="w_elliptic::we::assign-operator__weCR"></span><span class="target" id="project0classw__elliptic_1_1we_1afcf323450b254179903ad02d5331a29c"></span><a class="reference internal" href="#_CPPv2N10w_elliptic2we2weERK9real_typeRK9real_type" title="w_elliptic::we::we">we</a> &amp;<code class="descname">operator=</code><span class="sig-paren">(</span><em class="property">const</em> <a class="reference internal" href="#_CPPv2N10w_elliptic2we2weERK9real_typeRK9real_type" title="w_elliptic::we::we">we</a>&amp;<span class="sig-paren">)</span><a class="headerlink" href="#_CPPv2N10w_elliptic2weaSERK2we" title="Permalink to this definition">¶</a></dt>
+<dd><p>Defaulted copy-assignment operator. </p>
+</dd></dl>
+
+<dl class="function">
+<dt id="_CPPv2N10w_elliptic2weaSERR2we">
+<span id="w_elliptic::we::assign-operator__weRR"></span><span class="target" id="project0classw__elliptic_1_1we_1a7d04138b3cdb7ade096aaf93c9c1677f"></span><a class="reference internal" href="#_CPPv2N10w_elliptic2we2weERK9real_typeRK9real_type" title="w_elliptic::we::we">we</a> &amp;<code class="descname">operator=</code><span class="sig-paren">(</span><a class="reference internal" href="#_CPPv2N10w_elliptic2we2weERK9real_typeRK9real_type" title="w_elliptic::we::we">we</a>&amp;&amp;<span class="sig-paren">)</span><a class="headerlink" href="#_CPPv2N10w_elliptic2weaSERR2we" title="Permalink to this definition">¶</a></dt>
+<dd><p>Defaulted move-assignment operator. </p>
+</dd></dl>
+
+<dl class="function">
+<dt id="_CPPv2N10w_elliptic2we5rootsEv">
+<span id="w_elliptic::we::roots"></span><span class="target" id="project0classw__elliptic_1_1we_1a7cc7366fd45c86cbcb1090060d095ec0"></span><em class="property">const</em> std::array&lt;<a class="reference internal" href="#_CPPv2N10w_elliptic2we12complex_typeE" title="w_elliptic::we::complex_type">complex_type</a>, 3&gt; &amp;<code class="descname">roots</code><span class="sig-paren">(</span><span class="sig-paren">)</span> const<a class="headerlink" href="#_CPPv2N10w_elliptic2we5rootsEv" title="Permalink to this definition">¶</a></dt>
+<dd><p>Roots. </p>
+<p>This method will return a const reference to an internal array containing the three roots of the Weierstrass cubic</p>
+<p><div class="math">
+\[ 4t^3-g_2t-g_3. \]</div>
+</p>
+<p>The three roots <span class="math">\(e_1\)</span>, <span class="math">\(e_2\)</span> and <span class="math">\(e_3\)</span> contained in the array are ordered so that</p>
+<p><div class="math">
+\[ e_j=\wp\left(\omega_j\right), \]</div>
+</p>
+<p>where the <span class="math">\(\omega_j\)</span> are the three half-periods (see <a class="reference internal" href="#project0classw__elliptic_1_1we_1a7eb56a9fce8d4c639abfbce1510f8847"><span>we::periods()</span></a>). The three roots also satisfy the condition</p>
+<p><div class="math">
+\[ e_1+e_2+e_3 = 0. \]</div>
+</p>
+<p><dl class="docutils">
+<dt><strong>Return</strong></dt>
+<dd>a const reference to the array of roots of the Weierstrass cubic.</dd>
+<dt><strong>See</strong></dt>
+<dd><a class="reference external" href="http://dlmf.nist.gov/23.3#i">http://dlmf.nist.gov/23.3#i</a> </dd>
+</dl>
+</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="_CPPv2N10w_elliptic2we10invariantsEv">
+<span id="w_elliptic::we::invariants"></span><span class="target" id="project0classw__elliptic_1_1we_1a2fb99108e9027eb0c5082e505e5cbf9d"></span><em class="property">const</em> std::array&lt;<a class="reference internal" href="#_CPPv2N10w_elliptic2we9real_typeE" title="w_elliptic::we::real_type">real_type</a>, 2&gt; &amp;<code class="descname">invariants</code><span class="sig-paren">(</span><span class="sig-paren">)</span> const<a class="headerlink" href="#_CPPv2N10w_elliptic2we10invariantsEv" title="Permalink to this definition">¶</a></dt>
+<dd><p>Invariants. </p>
+<p><dl class="docutils">
+<dt><strong>Return</strong></dt>
+<dd>a const reference to an array containing the two invariants <span class="math">\(g_2\)</span> and <span class="math">\(g_3\)</span> used for construction. </dd>
+</dl>
+</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="_CPPv2N10w_elliptic2we7periodsEv">
+<span id="w_elliptic::we::periods"></span><span class="target" id="project0classw__elliptic_1_1we_1a7eb56a9fce8d4c639abfbce1510f8847"></span><em class="property">const</em> std::array&lt;<a class="reference internal" href="#_CPPv2N10w_elliptic2we12complex_typeE" title="w_elliptic::we::complex_type">complex_type</a>, 2&gt; &amp;<code class="descname">periods</code><span class="sig-paren">(</span><span class="sig-paren">)</span> const<a class="headerlink" href="#_CPPv2N10w_elliptic2we7periodsEv" title="Permalink to this definition">¶</a></dt>
+<dd><p>Periods. </p>
+<p>This method will return a const reference to an internal array containing the two periods <span class="math">\(2\omega_1\)</span> and <span class="math">\(2\omega_3\)</span> that generate a fundamental parallelogram associated to the invariants <span class="math">\(g_2\)</span> and <span class="math">\(g_3\)</span> used for construction.</p>
+<p>The following properties are guaranteed:<ul class="simple">
+<li><span class="math">\(2\omega_1\)</span> is always real and positive,</li>
+<li><span class="math">\(2\omega_3\)</span> is always complex, with a positive imaginary part,</li>
+<li>if <span class="math">\(2\omega_3\)</span> is not purely imaginary, then its real part is <span class="math">\(\omega_1\)</span>.</li>
+</ul>
+</p>
+<p>The first two properties imply that <span class="math">\(\Im\left(\omega_3/\omega_1\right)&gt;0\)</span>. The half-periods <span class="math">\(\omega_1\)</span> and <span class="math">\(\omega_3\)</span> satisfy the property</p>
+<p><div class="math">
+\[ e_j=\wp\left(\omega_j\right), \]</div>
+</p>
+<p>where the <span class="math">\(e_j\)</span> are the roots of the Weierstrass cubic (see <a class="reference internal" href="#project0classw__elliptic_1_1we_1a7cc7366fd45c86cbcb1090060d095ec0"><span>we::roots()</span></a>). The third half-period <span class="math">\(\omega_2\)</span> is defined as</p>
+<p><div class="math">
+\[ \omega_2=-\omega_1-\omega_3, \]</div>
+</p>
+<p>and it also satisfies the property <span class="math">\(e_2=\wp\left(\omega_2\right)\)</span>.</p>
+<p><dl class="docutils">
+<dt><strong>Return</strong></dt>
+<dd>a const reference to the array of periods.</dd>
+<dt><strong>See</strong></dt>
+<dd><a class="reference external" href="http://dlmf.nist.gov/23.2#i">http://dlmf.nist.gov/23.2#i</a> </dd>
+</dl>
+</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="_CPPv2N10w_elliptic2we4etasEv">
+<span id="w_elliptic::we::etas"></span><span class="target" id="project0classw__elliptic_1_1we_1a5ac76027141c464b53827654e65cda48"></span><em class="property">const</em> std::array&lt;<a class="reference internal" href="#_CPPv2N10w_elliptic2we12complex_typeE" title="w_elliptic::we::complex_type">complex_type</a>, 2&gt; &amp;<code class="descname">etas</code><span class="sig-paren">(</span><span class="sig-paren">)</span> const<a class="headerlink" href="#_CPPv2N10w_elliptic2we4etasEv" title="Permalink to this definition">¶</a></dt>
+<dd><p>Eta constants. </p>
+<p>This method will return a const reference to an internal array containing the two constants <span class="math">\(\eta_1\)</span> and <span class="math">\(\eta_3\)</span>, defined as</p>
+<p><div class="math">
+\[ \eta_j = \zeta\left(\omega_j\right), \]</div>
+</p>
+<p>where <span class="math">\(\omega_j\)</span> are the half-periods (see <a class="reference internal" href="#project0classw__elliptic_1_1we_1a7eb56a9fce8d4c639abfbce1510f8847"><span>we::periods()</span></a>) and <span class="math">\(\zeta\)</span> the Weierstrass zeta function (see <a class="reference internal" href="#project0classw__elliptic_1_1we_1ae3ec7f2fd205121536b762fa842d3109"><span>we::zeta()</span></a>). These constants are used internally in the computation of the Weierstrassian functions. The first eta constant, <span class="math">\(\eta_1\)</span>, is guaranteed to be purely real.</p>
+<p><dl class="docutils">
+<dt><strong>Return</strong></dt>
+<dd>a const reference to the array of eta constants.</dd>
+<dt><strong>See</strong></dt>
+<dd><a class="reference external" href="http://dlmf.nist.gov/23.2#iii">http://dlmf.nist.gov/23.2#iii</a> </dd>
+<dt><strong>See</strong></dt>
+<dd><a class="reference external" href="http://dlmf.nist.gov/23.6#i">http://dlmf.nist.gov/23.6#i</a> </dd>
+</dl>
+</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="_CPPv2N10w_elliptic2we5DeltaEv">
+<span id="w_elliptic::we::Delta"></span><span class="target" id="project0classw__elliptic_1_1we_1a33bd5f5533be45e0a8022c216fae5ffe"></span><em class="property">const</em> <a class="reference internal" href="#_CPPv2N10w_elliptic2we9real_typeE" title="w_elliptic::we::real_type">real_type</a> &amp;<code class="descname">Delta</code><span class="sig-paren">(</span><span class="sig-paren">)</span> const<a class="headerlink" href="#_CPPv2N10w_elliptic2we5DeltaEv" title="Permalink to this definition">¶</a></dt>
+<dd><p>Discriminant. </p>
+<p><dl class="docutils">
+<dt><strong>Return</strong></dt>
+<dd>a const reference to the discriminant of the Weierstrass cubic (that is, <span class="math">\(16g_2^3-432g_3^2\)</span>). </dd>
+</dl>
+</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="_CPPv2N10w_elliptic2we1qEv">
+<span id="w_elliptic::we::q"></span><span class="target" id="project0classw__elliptic_1_1we_1acecdb8873f882a6d1e6a7eed2ad48827"></span><em class="property">const</em> <a class="reference internal" href="#_CPPv2N10w_elliptic2we12complex_typeE" title="w_elliptic::we::complex_type">complex_type</a> &amp;<code class="descname">q</code><span class="sig-paren">(</span><span class="sig-paren">)</span> const<a class="headerlink" href="#_CPPv2N10w_elliptic2we1qEv" title="Permalink to this definition">¶</a></dt>
+<dd><p>Nome. </p>
+<p>The nome <span class="math">\(q\)</span> is defined as:</p>
+<p><div class="math">
+\[ q = \exp{\left(\imath\pi\frac{\omega_3}{\omega_1}\right)}, \]</div>
+</p>
+<p>where <span class="math">\(\omega_1\)</span> and <span class="math">\(\omega_3\)</span> are the fundamental half-periods (see <a class="reference internal" href="#project0classw__elliptic_1_1we_1a7eb56a9fce8d4c639abfbce1510f8847"><span>we::periods()</span></a>). Due to the conventions adopted in the definition of the periods, <span class="math">\(q\)</span> is always either purely real or purely imaginary.</p>
+<p><dl class="docutils">
+<dt><strong>Return</strong></dt>
+<dd>a const reference to the nome <span class="math">\(q\)</span>. </dd>
+</dl>
+</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="_CPPv2N10w_elliptic2we1PERK9real_type">
+<span id="w_elliptic::we::P__real_typeCR"></span><span class="target" id="project0classw__elliptic_1_1we_1af03cf3c411f2dfbf56dc0e0ad1bfe02d"></span><a class="reference internal" href="#_CPPv2N10w_elliptic2we9real_typeE" title="w_elliptic::we::real_type">real_type</a> <code class="descname">P</code><span class="sig-paren">(</span><em class="property">const</em> <a class="reference internal" href="#_CPPv2N10w_elliptic2we9real_typeE" title="w_elliptic::we::real_type">real_type</a> &amp;<em>x</em><span class="sig-paren">)</span> const<a class="headerlink" href="#_CPPv2N10w_elliptic2we1PERK9real_type" title="Permalink to this definition">¶</a></dt>
+<dd><p>Weierstrass <span class="math">\(\wp\)</span> function (real argument). </p>
+<p>The implementation is based on Jacobi theta functions:</p>
+<p><div class="math">
+\[ \wp\left(z\right)=e_1+\left[\frac{\pi\theta_3\left(0,q\right)\theta_4\left(0,q\right)\theta_2\left(\frac{\pi z}{2\omega_1},q\right)}{2\omega_1\theta_1\left(\frac{\pi z}{2\omega_1},q\right)}\right]^2, \]</div>
+</p>
+<p>where <span class="math">\(q\)</span> is the nome (see <a class="reference internal" href="#project0classw__elliptic_1_1we_1acecdb8873f882a6d1e6a7eed2ad48827"><span>we::q()</span></a>) and <span class="math">\(\omega_1\)</span> the real half-period (see <a class="reference internal" href="#project0classw__elliptic_1_1we_1a7eb56a9fce8d4c639abfbce1510f8847"><span>we::periods()</span></a>). The implementation of this overload uses only real arithmetics.</p>
+<p><dl class="docutils">
+<dt><strong>Return</strong></dt>
+<dd><span class="math">\(\wp\left(x;g_2,g_3\right)\)</span>, where <span class="math">\(x\in\mathbb{R}\)</span>.</dd>
+<dt><strong>See</strong></dt>
+<dd><a class="reference external" href="http://dlmf.nist.gov/23.6#i">http://dlmf.nist.gov/23.6#i</a> </dd>
+<dt><strong>See</strong></dt>
+<dd><a class="reference external" href="https://en.wikipedia.org/wiki/Theta_function">https://en.wikipedia.org/wiki/Theta_function</a> </dd>
+<dt><strong>Parameters</strong></dt>
+<dd><ul class="breatheparameterlist first last">
+<li><code class="first docutils literal"><span class="pre">x</span></code> - <p>the real argument.</p>
+</li>
+</ul>
+</dd>
+</dl>
+</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="_CPPv2N10w_elliptic2we1PERK12complex_type">
+<span id="w_elliptic::we::P__complex_typeCR"></span><span class="target" id="project0classw__elliptic_1_1we_1aa4225c18cb0f5ed0d32c0a64805e4e3f"></span><a class="reference internal" href="#_CPPv2N10w_elliptic2we12complex_typeE" title="w_elliptic::we::complex_type">complex_type</a> <code class="descname">P</code><span class="sig-paren">(</span><em class="property">const</em> <a class="reference internal" href="#_CPPv2N10w_elliptic2we12complex_typeE" title="w_elliptic::we::complex_type">complex_type</a> &amp;<em>c</em><span class="sig-paren">)</span> const<a class="headerlink" href="#_CPPv2N10w_elliptic2we1PERK12complex_type" title="Permalink to this definition">¶</a></dt>
+<dd><p>Weierstrass <span class="math">\(\wp\)</span> function (complex argument). </p>
+<p>The implementation is based on Jacobi theta functions:</p>
+<p><div class="math">
+\[ \wp\left(z\right)=e_1+\left[\frac{\pi\theta_3\left(0,q\right)\theta_4\left(0,q\right)\theta_2\left(\frac{\pi z}{2\omega_1},q\right)}{2\omega_1\theta_1\left(\frac{\pi z}{2\omega_1},q\right)}\right]^2, \]</div>
+</p>
+<p>where <span class="math">\(q\)</span> is the nome (see <a class="reference internal" href="#project0classw__elliptic_1_1we_1acecdb8873f882a6d1e6a7eed2ad48827"><span>we::q()</span></a>) and <span class="math">\(\omega_1\)</span> the real half-period (see <a class="reference internal" href="#project0classw__elliptic_1_1we_1a7eb56a9fce8d4c639abfbce1510f8847"><span>we::periods()</span></a>). The implementation of this overload uses complex arithmetics.</p>
+<p><dl class="docutils">
+<dt><strong>Return</strong></dt>
+<dd><span class="math">\(\wp\left(c;g_2,g_3\right)\)</span>, where <span class="math">\(c\in\mathbb{C}\)</span>.</dd>
+<dt><strong>See</strong></dt>
+<dd><a class="reference external" href="http://dlmf.nist.gov/23.6#i">http://dlmf.nist.gov/23.6#i</a> </dd>
+<dt><strong>See</strong></dt>
+<dd><a class="reference external" href="https://en.wikipedia.org/wiki/Theta_function">https://en.wikipedia.org/wiki/Theta_function</a> </dd>
+<dt><strong>Parameters</strong></dt>
+<dd><ul class="breatheparameterlist first last">
+<li><code class="first docutils literal"><span class="pre">c</span></code> - <p>the complex argument.</p>
+</li>
+</ul>
+</dd>
+</dl>
+</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="_CPPv2N10w_elliptic2we6PprimeERK9real_type">
+<span id="w_elliptic::we::Pprime__real_typeCR"></span><span class="target" id="project0classw__elliptic_1_1we_1ad6fff655ec80e3c1c9359fea7a695075"></span><a class="reference internal" href="#_CPPv2N10w_elliptic2we9real_typeE" title="w_elliptic::we::real_type">real_type</a> <code class="descname">Pprime</code><span class="sig-paren">(</span><em class="property">const</em> <a class="reference internal" href="#_CPPv2N10w_elliptic2we9real_typeE" title="w_elliptic::we::real_type">real_type</a> &amp;<em>x</em><span class="sig-paren">)</span> const<a class="headerlink" href="#_CPPv2N10w_elliptic2we6PprimeERK9real_type" title="Permalink to this definition">¶</a></dt>
+<dd><p>Weierstrass <span class="math">\(\wp^\prime\)</span> function (real argument). </p>
+<p>The implementation is based on Jacobi theta functions:</p>
+<p><div class="math">
+\[ \wp^\prime\left(z\right)=\frac{d}{dz}\left[\frac{\pi\theta_3\left(0,q\right)\theta_4\left(0,q\right)\theta_2\left(\frac{\pi z}{2\omega_1},q\right)}{2\omega_1\theta_1\left(\frac{\pi z}{2\omega_1},q\right)}\right]^2, \]</div>
+</p>
+<p>where <span class="math">\(q\)</span> is the nome (see <a class="reference internal" href="#project0classw__elliptic_1_1we_1acecdb8873f882a6d1e6a7eed2ad48827"><span>we::q()</span></a>) and <span class="math">\(\omega_1\)</span> the real half-period (see <a class="reference internal" href="#project0classw__elliptic_1_1we_1a7eb56a9fce8d4c639abfbce1510f8847"><span>we::periods()</span></a>). The implementation of this overload uses only real arithmetics.</p>
+<p><dl class="docutils">
+<dt><strong>Return</strong></dt>
+<dd><span class="math">\(\wp^\prime\left(x;g_2,g_3\right)\)</span>, where <span class="math">\(x\in\mathbb{R}\)</span>.</dd>
+<dt><strong>See</strong></dt>
+<dd><a class="reference external" href="http://dlmf.nist.gov/23.6#i">http://dlmf.nist.gov/23.6#i</a> </dd>
+<dt><strong>See</strong></dt>
+<dd><a class="reference external" href="https://en.wikipedia.org/wiki/Theta_function">https://en.wikipedia.org/wiki/Theta_function</a> </dd>
+<dt><strong>Parameters</strong></dt>
+<dd><ul class="breatheparameterlist first last">
+<li><code class="first docutils literal"><span class="pre">x</span></code> - <p>the real argument.</p>
+</li>
+</ul>
+</dd>
+</dl>
+</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="_CPPv2N10w_elliptic2we6PprimeERK12complex_type">
+<span id="w_elliptic::we::Pprime__complex_typeCR"></span><span class="target" id="project0classw__elliptic_1_1we_1a2983a6a43621bd62a7813f93574850cd"></span><a class="reference internal" href="#_CPPv2N10w_elliptic2we12complex_typeE" title="w_elliptic::we::complex_type">complex_type</a> <code class="descname">Pprime</code><span class="sig-paren">(</span><em class="property">const</em> <a class="reference internal" href="#_CPPv2N10w_elliptic2we12complex_typeE" title="w_elliptic::we::complex_type">complex_type</a> &amp;<em>c</em><span class="sig-paren">)</span> const<a class="headerlink" href="#_CPPv2N10w_elliptic2we6PprimeERK12complex_type" title="Permalink to this definition">¶</a></dt>
+<dd><p>Weierstrass <span class="math">\(\wp^\prime\)</span> function (complex argument). </p>
+<p>The implementation is based on Jacobi theta functions:</p>
+<p><div class="math">
+\[ \wp^\prime\left(z\right)=\frac{d}{dz}\left[\frac{\pi\theta_3\left(0,q\right)\theta_4\left(0,q\right)\theta_2\left(\frac{\pi z}{2\omega_1},q\right)}{2\omega_1\theta_1\left(\frac{\pi z}{2\omega_1},q\right)}\right]^2, \]</div>
+</p>
+<p>where <span class="math">\(q\)</span> is the nome (see <a class="reference internal" href="#project0classw__elliptic_1_1we_1acecdb8873f882a6d1e6a7eed2ad48827"><span>we::q()</span></a>) and <span class="math">\(\omega_1\)</span> the real half-period (see <a class="reference internal" href="#project0classw__elliptic_1_1we_1a7eb56a9fce8d4c639abfbce1510f8847"><span>we::periods()</span></a>). The implementation of this overload uses complex arithmetics.</p>
+<p><dl class="docutils">
+<dt><strong>Return</strong></dt>
+<dd><span class="math">\(\wp^\prime\left(c;g_2,g_3\right)\)</span>, where <span class="math">\(c\in\mathbb{C}\)</span>.</dd>
+<dt><strong>See</strong></dt>
+<dd><a class="reference external" href="http://dlmf.nist.gov/23.6#i">http://dlmf.nist.gov/23.6#i</a> </dd>
+<dt><strong>See</strong></dt>
+<dd><a class="reference external" href="https://en.wikipedia.org/wiki/Theta_function">https://en.wikipedia.org/wiki/Theta_function</a> </dd>
+<dt><strong>Parameters</strong></dt>
+<dd><ul class="breatheparameterlist first last">
+<li><code class="first docutils literal"><span class="pre">c</span></code> - <p>the complex argument.</p>
+</li>
+</ul>
+</dd>
+</dl>
+</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="_CPPv2N10w_elliptic2we4zetaERK9real_type">
+<span id="w_elliptic::we::zeta__real_typeCR"></span><span class="target" id="project0classw__elliptic_1_1we_1ae3ec7f2fd205121536b762fa842d3109"></span><a class="reference internal" href="#_CPPv2N10w_elliptic2we9real_typeE" title="w_elliptic::we::real_type">real_type</a> <code class="descname">zeta</code><span class="sig-paren">(</span><em class="property">const</em> <a class="reference internal" href="#_CPPv2N10w_elliptic2we9real_typeE" title="w_elliptic::we::real_type">real_type</a> &amp;<em>x</em><span class="sig-paren">)</span> const<a class="headerlink" href="#_CPPv2N10w_elliptic2we4zetaERK9real_type" title="Permalink to this definition">¶</a></dt>
+<dd><p>Weierstrass <span class="math">\(\zeta\)</span> function (real argument). </p>
+<p>The implementation is based on Jacobi theta functions:</p>
+<p><div class="math">
+\[ \zeta\left(u\right)=\frac{\eta_1}{\omega_1}u+\frac{\pi}{2\omega_1}\frac{d}{dz}\ln\theta_1\left(z,q\right), \]</div>
+</p>
+<p>where <span class="math">\(z=\frac{\pi u}{2\omega_1}\)</span>, <span class="math">\(q\)</span> is the nome (see <a class="reference internal" href="#project0classw__elliptic_1_1we_1acecdb8873f882a6d1e6a7eed2ad48827"><span>we::q()</span></a>), <span class="math">\(\eta_1\)</span> is the first eta constant (see <a class="reference internal" href="#project0classw__elliptic_1_1we_1a5ac76027141c464b53827654e65cda48"><span>we::etas()</span></a>), and <span class="math">\(\omega_1\)</span> the real half-period (see <a class="reference internal" href="#project0classw__elliptic_1_1we_1a7eb56a9fce8d4c639abfbce1510f8847"><span>we::periods()</span></a>). The implementation of this overload uses only real arithmetics.</p>
+<p><dl class="docutils">
+<dt><strong>Return</strong></dt>
+<dd><span class="math">\(\zeta\left(x;g_2,g_3\right)\)</span>, where <span class="math">\(x\in\mathbb{R}\)</span>.</dd>
+<dt><strong>See</strong></dt>
+<dd><a class="reference external" href="http://dlmf.nist.gov/23.6#i">http://dlmf.nist.gov/23.6#i</a> </dd>
+<dt><strong>See</strong></dt>
+<dd><a class="reference external" href="https://en.wikipedia.org/wiki/Theta_function">https://en.wikipedia.org/wiki/Theta_function</a> </dd>
+<dt><strong>Parameters</strong></dt>
+<dd><ul class="breatheparameterlist first last">
+<li><code class="first docutils literal"><span class="pre">x</span></code> - <p>the real argument.</p>
+</li>
+</ul>
+</dd>
+</dl>
+</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="_CPPv2N10w_elliptic2we4zetaERK12complex_type">
+<span id="w_elliptic::we::zeta__complex_typeCR"></span><span class="target" id="project0classw__elliptic_1_1we_1a60c6a950bd08a4703851b1606896c931"></span><a class="reference internal" href="#_CPPv2N10w_elliptic2we12complex_typeE" title="w_elliptic::we::complex_type">complex_type</a> <code class="descname">zeta</code><span class="sig-paren">(</span><em class="property">const</em> <a class="reference internal" href="#_CPPv2N10w_elliptic2we12complex_typeE" title="w_elliptic::we::complex_type">complex_type</a> &amp;<em>c</em><span class="sig-paren">)</span> const<a class="headerlink" href="#_CPPv2N10w_elliptic2we4zetaERK12complex_type" title="Permalink to this definition">¶</a></dt>
+<dd><p>Weierstrass <span class="math">\(\zeta\)</span> function (complex argument). </p>
+<p>The implementation is based on Jacobi theta functions:</p>
+<p><div class="math">
+\[ \zeta\left(u\right)=\frac{\eta_1}{\omega_1}u+\frac{\pi}{2\omega_1}\frac{d}{dz}\ln\theta_1\left(z,q\right), \]</div>
+</p>
+<p>where <span class="math">\(z=\frac{\pi u}{2\omega_1}\)</span>, <span class="math">\(q\)</span> is the nome (see <a class="reference internal" href="#project0classw__elliptic_1_1we_1acecdb8873f882a6d1e6a7eed2ad48827"><span>we::q()</span></a>), <span class="math">\(\eta_1\)</span> is the first eta constant (see <a class="reference internal" href="#project0classw__elliptic_1_1we_1a5ac76027141c464b53827654e65cda48"><span>we::etas()</span></a>), and <span class="math">\(\omega_1\)</span> the real half-period (see <a class="reference internal" href="#project0classw__elliptic_1_1we_1a7eb56a9fce8d4c639abfbce1510f8847"><span>we::periods()</span></a>). The implementation of this overload uses complex arithmetics.</p>
+<p><dl class="docutils">
+<dt><strong>Return</strong></dt>
+<dd><span class="math">\(\zeta\left(c;g_2,g_3\right)\)</span>, where <span class="math">\(c\in\mathbb{C}\)</span>.</dd>
+<dt><strong>See</strong></dt>
+<dd><a class="reference external" href="http://dlmf.nist.gov/23.6#i">http://dlmf.nist.gov/23.6#i</a> </dd>
+<dt><strong>See</strong></dt>
+<dd><a class="reference external" href="https://en.wikipedia.org/wiki/Theta_function">https://en.wikipedia.org/wiki/Theta_function</a> </dd>
+<dt><strong>Parameters</strong></dt>
+<dd><ul class="breatheparameterlist first last">
+<li><code class="first docutils literal"><span class="pre">c</span></code> - <p>the complex argument.</p>
+</li>
+</ul>
+</dd>
+</dl>
+</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="_CPPv2N10w_elliptic2we5sigmaERK9real_type">
+<span id="w_elliptic::we::sigma__real_typeCR"></span><span class="target" id="project0classw__elliptic_1_1we_1ae67024d2009cc057e9f89dd74fb5125e"></span><a class="reference internal" href="#_CPPv2N10w_elliptic2we9real_typeE" title="w_elliptic::we::real_type">real_type</a> <code class="descname">sigma</code><span class="sig-paren">(</span><em class="property">const</em> <a class="reference internal" href="#_CPPv2N10w_elliptic2we9real_typeE" title="w_elliptic::we::real_type">real_type</a> &amp;<em>x</em><span class="sig-paren">)</span> const<a class="headerlink" href="#_CPPv2N10w_elliptic2we5sigmaERK9real_type" title="Permalink to this definition">¶</a></dt>
+<dd><p>Weierstrass <span class="math">\(\sigma\)</span> function (real argument). </p>
+<p>The implementation is based on Jacobi theta functions:</p>
+<p><div class="math">
+\[ \sigma\left(z\right)=2\omega_1\exp{\left(\frac{\eta_1z^2}{2\omega_1}\right)}\frac{\theta_1\left(\frac{\pi z}{2\omega_1},q\right)}{\pi\theta_1^\prime\left(0,q\right)}, \]</div>
+</p>
+<p>where <span class="math">\(q\)</span> is the nome (see <a class="reference internal" href="#project0classw__elliptic_1_1we_1acecdb8873f882a6d1e6a7eed2ad48827"><span>we::q()</span></a>), <span class="math">\(\eta_1\)</span> is the first eta constant (see <a class="reference internal" href="#project0classw__elliptic_1_1we_1a5ac76027141c464b53827654e65cda48"><span>we::etas()</span></a>), and <span class="math">\(\omega_1\)</span> the real half-period (see <a class="reference internal" href="#project0classw__elliptic_1_1we_1a7eb56a9fce8d4c639abfbce1510f8847"><span>we::periods()</span></a>). The implementation of this overload uses only real arithmetics.</p>
+<p><dl class="docutils">
+<dt><strong>Return</strong></dt>
+<dd><span class="math">\(\sigma\left(x;g_2,g_3\right)\)</span>, where <span class="math">\(x\in\mathbb{R}\)</span>.</dd>
+<dt><strong>See</strong></dt>
+<dd><a class="reference external" href="http://dlmf.nist.gov/23.6#i">http://dlmf.nist.gov/23.6#i</a> </dd>
+<dt><strong>See</strong></dt>
+<dd><a class="reference external" href="https://en.wikipedia.org/wiki/Theta_function">https://en.wikipedia.org/wiki/Theta_function</a> </dd>
+<dt><strong>Parameters</strong></dt>
+<dd><ul class="breatheparameterlist first last">
+<li><code class="first docutils literal"><span class="pre">x</span></code> - <p>the real argument.</p>
+</li>
+</ul>
+</dd>
+</dl>
+</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="_CPPv2N10w_elliptic2we5sigmaERK12complex_type">
+<span id="w_elliptic::we::sigma__complex_typeCR"></span><span class="target" id="project0classw__elliptic_1_1we_1a02187845a30b3f71a7c0a8608ebe5cb5"></span><a class="reference internal" href="#_CPPv2N10w_elliptic2we12complex_typeE" title="w_elliptic::we::complex_type">complex_type</a> <code class="descname">sigma</code><span class="sig-paren">(</span><em class="property">const</em> <a class="reference internal" href="#_CPPv2N10w_elliptic2we12complex_typeE" title="w_elliptic::we::complex_type">complex_type</a> &amp;<em>c</em><span class="sig-paren">)</span> const<a class="headerlink" href="#_CPPv2N10w_elliptic2we5sigmaERK12complex_type" title="Permalink to this definition">¶</a></dt>
+<dd><p>Weierstrass <span class="math">\(\sigma\)</span> function (complex argument). </p>
+<p>The implementation is based on Jacobi theta functions:</p>
+<p><div class="math">
+\[ \sigma\left(z\right)=2\omega_1\exp{\left(\frac{\eta_1z^2}{2\omega_1}\right)}\frac{\theta_1\left(\frac{\pi z}{2\omega_1},q\right)}{\pi\theta_1^\prime\left(0,q\right)}, \]</div>
+</p>
+<p>where <span class="math">\(q\)</span> is the nome (see <a class="reference internal" href="#project0classw__elliptic_1_1we_1acecdb8873f882a6d1e6a7eed2ad48827"><span>we::q()</span></a>), <span class="math">\(\eta_1\)</span> is the first eta constant (see <a class="reference internal" href="#project0classw__elliptic_1_1we_1a5ac76027141c464b53827654e65cda48"><span>we::etas()</span></a>), and <span class="math">\(\omega_1\)</span> the real half-period (see <a class="reference internal" href="#project0classw__elliptic_1_1we_1a7eb56a9fce8d4c639abfbce1510f8847"><span>we::periods()</span></a>). The implementation of this overload uses complex arithmetics.</p>
+<p><dl class="docutils">
+<dt><strong>Return</strong></dt>
+<dd><span class="math">\(\sigma\left(c;g_2,g_3\right)\)</span>, where <span class="math">\(c\in\mathbb{C}\)</span>.</dd>
+<dt><strong>See</strong></dt>
+<dd><a class="reference external" href="http://dlmf.nist.gov/23.6#i">http://dlmf.nist.gov/23.6#i</a> </dd>
+<dt><strong>See</strong></dt>
+<dd><a class="reference external" href="https://en.wikipedia.org/wiki/Theta_function">https://en.wikipedia.org/wiki/Theta_function</a> </dd>
+<dt><strong>Parameters</strong></dt>
+<dd><ul class="breatheparameterlist first last">
+<li><code class="first docutils literal"><span class="pre">c</span></code> - <p>the complex argument.</p>
+</li>
+</ul>
+</dd>
+</dl>
+</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="_CPPv2N10w_elliptic2we13ln_sigma_realERK12complex_type">
+<span id="w_elliptic::we::ln_sigma_real__complex_typeCR"></span><span class="target" id="project0classw__elliptic_1_1we_1a7a0b140a382efd19283419260ddb8373"></span><a class="reference internal" href="#_CPPv2N10w_elliptic2we9real_typeE" title="w_elliptic::we::real_type">real_type</a> <code class="descname">ln_sigma_real</code><span class="sig-paren">(</span><em class="property">const</em> <a class="reference internal" href="#_CPPv2N10w_elliptic2we12complex_typeE" title="w_elliptic::we::complex_type">complex_type</a> &amp;<em>c</em><span class="sig-paren">)</span> const<a class="headerlink" href="#_CPPv2N10w_elliptic2we13ln_sigma_realERK12complex_type" title="Permalink to this definition">¶</a></dt>
+<dd><p>Real part of the logarithm of the sigma function. </p>
+<p>This method returns:</p>
+<p><div class="math">
+\[ \Re{\left[\ln\sigma\left(z\right)\right]}, \]</div>
+</p>
+<p>where <span class="math">\(\sigma\)</span> is the Weierstrass sigma function (see <a class="reference internal" href="#project0classw__elliptic_1_1we_1ae67024d2009cc057e9f89dd74fb5125e"><span>we::sigma()</span></a>). If the imaginary part of <span class="math">\(z\)</span> is in the range <span class="math">\(\left[0,\Im\left(\omega_3\right)\right]\)</span>, where <span class="math">\(\omega_3\)</span> is the complex half-period (see <a class="reference internal" href="#project0classw__elliptic_1_1we_1a7eb56a9fce8d4c639abfbce1510f8847"><span>we::periods()</span></a>), the output of this function is guaranteed to be continuous when crossing the branch cut of the complex logarithm.</p>
+<p><dl class="docutils">
+<dt><strong>Return</strong></dt>
+<dd><span class="math">\(\Re{\left[\ln\sigma\left(c;g_2,g_3\right)\right]}\)</span>. </dd>
+<dt><strong>Parameters</strong></dt>
+<dd><ul class="breatheparameterlist first last">
+<li><code class="first docutils literal"><span class="pre">c</span></code> - <p>the complex argument.</p>
+</li>
+</ul>
+</dd>
+</dl>
+</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="_CPPv2N10w_elliptic2we13ln_sigma_imagERK12complex_type">
+<span id="w_elliptic::we::ln_sigma_imag__complex_typeCR"></span><span class="target" id="project0classw__elliptic_1_1we_1af22321495709ccc155e9627dbe5ede31"></span><a class="reference internal" href="#_CPPv2N10w_elliptic2we9real_typeE" title="w_elliptic::we::real_type">real_type</a> <code class="descname">ln_sigma_imag</code><span class="sig-paren">(</span><em class="property">const</em> <a class="reference internal" href="#_CPPv2N10w_elliptic2we12complex_typeE" title="w_elliptic::we::complex_type">complex_type</a> &amp;<em>c</em><span class="sig-paren">)</span> const<a class="headerlink" href="#_CPPv2N10w_elliptic2we13ln_sigma_imagERK12complex_type" title="Permalink to this definition">¶</a></dt>
+<dd><p>Imaginary part of the logarithm of the sigma function. </p>
+<p>This method returns:</p>
+<p><div class="math">
+\[ \Im{\left[\ln\sigma\left(z\right)\right]}, \]</div>
+</p>
+<p>where <span class="math">\(\sigma\)</span> is the Weierstrass sigma function (see <a class="reference internal" href="#project0classw__elliptic_1_1we_1ae67024d2009cc057e9f89dd74fb5125e"><span>we::sigma()</span></a>). If the imaginary part of <span class="math">\(z\)</span> is in the range <span class="math">\(\left[0,\Im\left(\omega_3\right)\right]\)</span>, where <span class="math">\(\omega_3\)</span> is the complex half-period (see <a class="reference internal" href="#project0classw__elliptic_1_1we_1a7eb56a9fce8d4c639abfbce1510f8847"><span>we::periods()</span></a>), the output of this function is guaranteed to be continuous when crossing the branch cut of the complex logarithm.</p>
+<p><dl class="docutils">
+<dt><strong>Return</strong></dt>
+<dd><span class="math">\(\Im{\left[\ln\sigma\left(c;g_2,g_3\right)\right]}\)</span>. </dd>
+<dt><strong>Parameters</strong></dt>
+<dd><ul class="breatheparameterlist first last">
+<li><code class="first docutils literal"><span class="pre">c</span></code> - <p>the complex argument.</p>
+</li>
+</ul>
+</dd>
+</dl>
+</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="_CPPv2N10w_elliptic2we4PinvERK12complex_type">
+<span id="w_elliptic::we::Pinv__complex_typeCR"></span><span class="target" id="project0classw__elliptic_1_1we_1a4a866dc86c5cfa951728add689aa9108"></span>std::array&lt;<a class="reference internal" href="#_CPPv2N10w_elliptic2we12complex_typeE" title="w_elliptic::we::complex_type">complex_type</a>, 2&gt; <code class="descname">Pinv</code><span class="sig-paren">(</span><em class="property">const</em> <a class="reference internal" href="#_CPPv2N10w_elliptic2we12complex_typeE" title="w_elliptic::we::complex_type">complex_type</a> &amp;<em>c</em><span class="sig-paren">)</span> const<a class="headerlink" href="#_CPPv2N10w_elliptic2we4PinvERK12complex_type" title="Permalink to this definition">¶</a></dt>
+<dd><p>Inverse <span class="math">\(\wp\)</span> function. </p>
+<p>This method will return an array containing the two values <span class="math">\(z_j\)</span> within the fundamental parallelogram that satisfy</p>
+<p><div class="math">
+\[ \wp\left(z_j\right) = c. \]</div>
+</p>
+<p>The implementation is based on the following relation between <span class="math">\(\wp\)</span> and the Jacobi elliptic function <span class="math">\(\mathrm{cs}\)</span>:</p>
+<p><div class="math">
+\[ \wp\left(z\right)-e_1=\frac{K^2}{\omega_1^2}\mathrm{cs}^2\left(\frac{Kz}{\omega_1},k\right), \]</div>
+</p>
+<p>where</p>
+<p><div class="math">
+\[ k^2 = \frac{e_2-e_3}{e_1-e_3}, \]</div>
+</p>
+<p><div class="math">
+\[ K = \omega_1^2\left(e_1-e_3\right), \]</div>
+</p>
+<p>the <span class="math">\(e_j\)</span> are the roots of the Weierstrass cubic (see <a class="reference internal" href="#project0classw__elliptic_1_1we_1a7cc7366fd45c86cbcb1090060d095ec0"><span>we::roots()</span></a>) and <span class="math">\(\omega_1\)</span> is the real half-period (see <a class="reference internal" href="#project0classw__elliptic_1_1we_1a7eb56a9fce8d4c639abfbce1510f8847"><span>we::periods()</span></a>). The relation in terms of <span class="math">\(\mathrm{cs}\)</span> is inverted to yield an expression of <span class="math">\(\wp^{-1}\)</span> in terms of an elliptic integral computed via a Landen transformation.</p>
+<p>The following guarantees are provided for the returned values:</p>
+<p><ul class="simple">
+<li>they are always contained within the fundamental parallelogram defined by the periods (see <a class="reference internal" href="#project0classw__elliptic_1_1we_1a7eb56a9fce8d4c639abfbce1510f8847"><span>we::periods()</span></a>),</li>
+<li>if the input value <code class="docutils literal"><span class="pre">c</span></code> is purely real and greater than <span class="math">\(e_1\)</span>, then the two results will be purely real and sorted in ascending order,</li>
+<li>otherwise, the two results are sorted in ascending order according to their imaginary part.</li>
+</ul>
+</p>
+<p><dl class="docutils">
+<dt><strong>Return</strong></dt>
+<dd>an array of two values <span class="math">\(z_j\)</span> such that <span class="math">\(\wp\left(z_j\right) = c\)</span>.</dd>
+<dt><strong>See</strong></dt>
+<dd><a class="reference external" href="http://dlmf.nist.gov/23.6#ii">http://dlmf.nist.gov/23.6#ii</a> </dd>
+<dt><strong>See</strong></dt>
+<dd><a class="reference external" href="https://en.wikipedia.org/wiki/Jacobi_elliptic_functions">https://en.wikipedia.org/wiki/Jacobi_elliptic_functions</a> </dd>
+<dt><strong>See</strong></dt>
+<dd><a class="reference external" href="https://en.wikipedia.org/wiki/Elliptic_integral">https://en.wikipedia.org/wiki/Elliptic_integral</a> </dd>
+<dt><strong>Parameters</strong></dt>
+<dd><ul class="breatheparameterlist first last">
+<li><code class="first docutils literal"><span class="pre">c</span></code> - <p>the complex argument.</p>
+</li>
+</ul>
+</dd>
+</dl>
+</p>
+</dd></dl>
+
+</div>
+<div class="breathe-sectiondef container">
+<p class="breathe-sectiondef-title rubric">Friends</p>
+<dl class="function">
+<dt id="_CPPv2lsRNSt7ostreamERK2we">
+<span id="lshift-operator__osR.weCR"></span><span class="target" id="project0classw__elliptic_1_1we_1a350c823880b955890d9e84b8092a0460"></span>std::ostream &amp;<code class="descname">operator&lt;&lt;</code><span class="sig-paren">(</span>std::ostream &amp;<em>os</em>, <em class="property">const</em> we &amp;<em>w</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv2lsRNSt7ostreamERK2we" title="Permalink to this definition">¶</a></dt>
+<dd><p>Stream operator. </p>
+<p>This operator will send to the output stream <code class="docutils literal"><span class="pre">os</span></code> a human-readable representation of the object <code class="docutils literal"><span class="pre">we</span></code>.</p>
+<p><dl class="docutils">
+<dt><strong>Return</strong></dt>
+<dd>a reference to <code class="docutils literal"><span class="pre">os</span></code>. </dd>
+<dt><strong>Parameters</strong></dt>
+<dd><ul class="breatheparameterlist first last">
+<li><code class="first docutils literal"><span class="pre">os</span></code> - <p>target stream. </p>
+</li>
+<li><code class="first docutils literal"><span class="pre">w</span></code> - <p><a class="reference internal" href="#project0classw__elliptic_1_1we"><span>w_elliptic::we</span></a> object.</p>
+</li>
+</ul>
+</dd>
+</dl>
+</p>
+</dd></dl>
+
+</div>
+</dd></dl>
+
+</div>
+
+
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+      
+        <a href="index.html" class="btn btn-neutral" title="Welcome to w_elliptic’s documentation!" accesskey="p"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2015, Francesco Biscani.
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'./',
+            VERSION:'0.1',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true
+        };
+    </script>
+      <script type="text/javascript" src="_static/jquery.js"></script>
+      <script type="text/javascript" src="_static/underscore.js"></script>
+      <script type="text/javascript" src="_static/doctools.js"></script>
+      <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="_static/js/theme.js"></script>
+  
+
+  
+  
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.StickyNav.enable();
+      });
+  </script>
+   
+
+</body>
+</html>
