@@ -1214,11 +1214,15 @@ class we
          * - they are always contained within the fundamental parallelogram defined by the periods (see we::periods()),
          * - if the input value \p c is purely real and greater than \f$e_1\f$, then the two results will be purely real
          *   and sorted in ascending order,
-         * - otherwise, the two results are sorted according to their imaginary part.
+         * - otherwise, the two results are sorted in ascending order according to their imaginary part.
          *
          * @param[in] c the complex argument.
          *
          * @return an array of two values \f$z_j\f$ such that \f$\wp\left(z_j\right) = c\f$.
+         *
+         * @see http://dlmf.nist.gov/23.6#ii
+         * @see https://en.wikipedia.org/wiki/Jacobi_elliptic_functions
+         * @see https://en.wikipedia.org/wiki/Elliptic_integral
          */
         std::array<complex_type,2> Pinv(const complex_type &c) const
         {

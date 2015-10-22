@@ -42,7 +42,6 @@ extensions = [
 # Breathe config.
 breathe_projects = { "w_elliptic": "../doxygen/xml" }
 breathe_default_project = "w_elliptic"
-breathe_default_members = ('members')
 
 # Add any paths that contain templates here, relative to this directory.
 templates_path = ['_templates']
