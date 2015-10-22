@@ -125,15 +125,15 @@ struct is_supported<T,typename std::enable_if<std::is_floating_point<T>::value>:
 /// Class for the computation of Weierstrass elliptic and related functions.
 /**
  * \tparam T a supported real type (currently, \p float, \p double and <tt>long double</tt>).
- * 
+ *
  * This class is the main object to be used for the computation of Weierstrass elliptic and related
  * functions. After construction from a pair of real invariants, it will be possible to call methods
  * of this class to compute the desired functions.
- * 
+ *
  * The functionality of this class is built upon series expansions which have an implementation-defined
  * hard limit for the number of iterations. Whenever this limit is reached, an \p std::runtime_error
  * exception will be thrown.
- * 
+ *
  * Unless otherwise noted, this class adopts the DLMF conventions: http://dlmf.nist.gov/23.
  */
 template <typename T>
@@ -771,10 +771,10 @@ class we
         /**
          * This constructor will initialise the object for the computation of Weierstrass elliptic
          * and related functions defined in terms of the real invariants \p g2 and \p g3.
-         * 
+         *
          * @param[in] g2 the first invariant.
          * @param[in] g3 the second invariant.
-         * 
+         *
          * @throws std::invalid_argument if \p g2 and/or \p g3 are not finite.
          */
         explicit we(const real_type &g2, const real_type &g3):m_invariants{{g2,g3}}
@@ -816,25 +816,25 @@ class we
         /// Roots.
         /**
          * This method will return a const reference to an internal array containing the three roots of the Weierstrass cubic
-         * 
+         *
          * \f[
          * 4t^3-g_2t-g_3.
          * \f]
-         * 
+         *
          * The three roots \f$e_1\f$, \f$e_2\f$ and \f$e_3\f$ contained in the array are ordered so that
-         * 
+         *
          * \f[
          * e_j=\wp\left(\omega_j\right),
          * \f]
-         * 
+         *
          * where the \f$\omega_j\f$ are the three half-periods (see we::periods()). The three roots also satisfy the condition
-         * 
+         *
          * \f[
          * e_1+e_2+e_3 = 0.
          * \f]
-         * 
+         *
          * @see http://dlmf.nist.gov/23.3#i
-         * 
+         *
          * @return a const reference to the array of roots of the Weierstrass cubic.
          */
         const std::array<complex_type,3> &roots() const
@@ -853,26 +853,26 @@ class we
         /**
          * This method will return a const reference to an internal array containing the two periods \f$2\omega_1\f$ and \f$2\omega_3\f$
          * that generate a fundamental parallelogram associated to the invariants \f$g_2\f$ and \f$g_3\f$ used for construction.
-         * 
+         *
          * The following properties are guaranteed:
          * - \f$2\omega_1\f$ is always real and positive,
          * - \f$2\omega_3\f$ is always complex, with a positive imaginary part,
          * - if \f$2\omega_3\f$ is not purely imaginary, then its real part is \f$\omega_1\f$.
-         * 
+         *
          * These two properties imply that \f$\Im\left(\omega_3/\omega_1\right)>0\f$. The half-periods \f$\omega_1\f$ and \f$\omega_3\f$ satisfy the property
-         * 
+         *
          * \f[
          * e_j=\wp\left(\omega_j\right),
          * \f]
-         * 
-         * where the \f$e_j\f$ are the roots of the Weierstrass cubic (see we::roots()) and \f$\omega_2\f$ satisfies
-         * 
+         *
+         * where the \f$e_j\f$ are the roots of the Weierstrass cubic (see we::roots()). The third half-period \f$\omega_2\f$ is defined as
+         *
          * \f[
-         * \omega_1+\omega_2+\omega_3=0.
+         * \omega_2=-\omega_1-\omega_3.
          * \f]
-         * 
+         *
          * @see http://dlmf.nist.gov/23.2#i
-         * 
+         *
          *  @return a const reference to the array of periods.
          */
         const std::array<complex_type,2> &periods() const
@@ -883,18 +883,18 @@ class we
         /**
          * This method will return a const reference to an internal array containing the two constants \f$\eta_1\f$ and \f$\eta_3\f$,
          * defined as
-         * 
+         *
          * \f[
          * \eta_j = \zeta\left(\omega_j\right),
          * \f]
-         * 
+         *
          * where \f$\omega_j\f$ are the half-periods (see we::periods()) and \f$\zeta\f$ the Weierstrass zeta function (see we::zeta()).
          * These constants are used internally in the computation of the Weierstrassian functions. The first eta constant, \f$\eta_1\f$,
          * is guaranteed to be purely real.
-         * 
+         *
          * @see http://dlmf.nist.gov/23.2#iii
          * @see http://dlmf.nist.gov/23.6#i
-         * 
+         *
          * @return a const reference to the array of eta constants.
          */
         const std::array<complex_type,2> &etas() const
@@ -912,14 +912,14 @@ class we
         /// Nome.
         /**
          * The nome \f$q\f$ is defined as:
-         * 
+         *
          * \f[
          * q = \exp{\left(\imath\pi\frac{\omega_3}{\omega_1}\right)},
          * \f]
-         * 
+         *
          * where \f$\omega_1\f$ and \f$\omega_3\f$ are the fundamental half-periods (see we::periods()). Due to the conventions adopted in the
          * definition of the periods, \f$q\f$ is always either purely real or purely imaginary.
-         * 
+         *
          * @return a const reference to the nome \f$q\f$.
          */
         const complex_type &q() const
@@ -929,10 +929,10 @@ class we
         /// Stream operator.
         /**
          * This operator will send to the output stream \p os a human-readable representation of the object \p we.
-         * 
+         *
          * @param[in,out] os target stream.
          * @param[in] w w_elliptic::we object.
-         * 
+         *
          * @return a reference to \p os.
          */
         friend std::ostream &operator<<(std::ostream &os, const we &w)
@@ -951,17 +951,19 @@ class we
         /// Weierstrass \f$\wp\f$ function (real argument).
         /**
          * The implementation is based on Jacobi theta functions:
-         * 
+         *
          * \f[
          * \wp\left(z\right)=e_1+\left[\frac{\pi\theta_3\left(0,q\right)\theta_4\left(0,q\right)\theta_2\left(\frac{\pi z}{2\omega_1},q\right)}{2\omega_1\theta_1\left(\frac{\pi z}{2\omega_1},q\right)}\right]^2,
          * \f]
-         * 
+         *
          * where \f$q\f$ is the nome (see we::q()) and \f$\omega_1\f$ the real half-period (see we::periods()). The implementation of this overload uses only real arithmetics.
-         * 
+         *
+         * @param[in] x the real argument.
+         *
+         * @return \f$\wp\left(x;g_2,g_3\right)\f$, where \f$x\in\mathbb{R}\f$.
+         *
          * @see http://dlmf.nist.gov/23.6#i
          * @see https://en.wikipedia.org/wiki/Theta_function
-         * 
-         * @return \f$\wp\left(x;g_2,g_3\right)\f$, where \f$x\in\mathbb{R}\f$.
          */
         real_type P(const real_type &x) const
         {
@@ -970,17 +972,19 @@ class we
         /// Weierstrass \f$\wp\f$ function (complex argument).
         /**
          * The implementation is based on Jacobi theta functions:
-         * 
+         *
          * \f[
          * \wp\left(z\right)=e_1+\left[\frac{\pi\theta_3\left(0,q\right)\theta_4\left(0,q\right)\theta_2\left(\frac{\pi z}{2\omega_1},q\right)}{2\omega_1\theta_1\left(\frac{\pi z}{2\omega_1},q\right)}\right]^2,
          * \f]
-         * 
+         *
          * where \f$q\f$ is the nome (see we::q()) and \f$\omega_1\f$ the real half-period (see we::periods()). The implementation of this overload uses complex arithmetics.
-         * 
+         *
+         * @param[in] c the complex argument.
+         *
+         * @return \f$\wp\left(c;g_2,g_3\right)\f$, where \f$c\in\mathbb{C}\f$.
+         *
          * @see http://dlmf.nist.gov/23.6#i
          * @see https://en.wikipedia.org/wiki/Theta_function
-         * 
-         * @return \f$\wp\left(c;g_2,g_3\right)\f$, where \f$c\in\mathbb{C}\f$.
          */
         complex_type P(const complex_type &c) const
         {
@@ -993,17 +997,19 @@ class we
         /// Weierstrass \f$\wp^\prime\f$ function (real argument).
         /**
          * The implementation is based on Jacobi theta functions:
-         * 
+         *
          * \f[
-         * \wp^\prime\left(z\right)=e_1+\frac{d}{dz}\left[\frac{\pi\theta_3\left(0,q\right)\theta_4\left(0,q\right)\theta_2\left(\frac{\pi z}{2\omega_1},q\right)}{2\omega_1\theta_1\left(\frac{\pi z}{2\omega_1},q\right)}\right]^2,
+         * \wp^\prime\left(z\right)=\frac{d}{dz}\left[\frac{\pi\theta_3\left(0,q\right)\theta_4\left(0,q\right)\theta_2\left(\frac{\pi z}{2\omega_1},q\right)}{2\omega_1\theta_1\left(\frac{\pi z}{2\omega_1},q\right)}\right]^2,
          * \f]
-         * 
+         *
          * where \f$q\f$ is the nome (see we::q()) and \f$\omega_1\f$ the real half-period (see we::periods()). The implementation of this overload uses only real arithmetics.
-         * 
+         *
+         * @param[in] x the real argument.
+         *
+         * @return \f$\wp^\prime\left(x;g_2,g_3\right)\f$, where \f$x\in\mathbb{R}\f$.
+         *
          * @see http://dlmf.nist.gov/23.6#i
          * @see https://en.wikipedia.org/wiki/Theta_function
-         * 
-         * @return \f$\wp^\prime\left(x;g_2,g_3\right)\f$, where \f$x\in\mathbb{R}\f$.
          */
         real_type Pprime(const real_type &x) const
         {
@@ -1012,17 +1018,19 @@ class we
         /// Weierstrass \f$\wp^\prime\f$ function (complex argument).
         /**
          * The implementation is based on Jacobi theta functions:
-         * 
+         *
          * \f[
-         * \wp^\prime\left(z\right)=e_1+\frac{d}{dz}\left[\frac{\pi\theta_3\left(0,q\right)\theta_4\left(0,q\right)\theta_2\left(\frac{\pi z}{2\omega_1},q\right)}{2\omega_1\theta_1\left(\frac{\pi z}{2\omega_1},q\right)}\right]^2,
+         * \wp^\prime\left(z\right)=\frac{d}{dz}\left[\frac{\pi\theta_3\left(0,q\right)\theta_4\left(0,q\right)\theta_2\left(\frac{\pi z}{2\omega_1},q\right)}{2\omega_1\theta_1\left(\frac{\pi z}{2\omega_1},q\right)}\right]^2,
          * \f]
-         * 
+         *
          * where \f$q\f$ is the nome (see we::q()) and \f$\omega_1\f$ the real half-period (see we::periods()). The implementation of this overload uses complex arithmetics.
-         * 
+         *
+         * @param[in] c the complex argument.
+         *
+         * @return \f$\wp^\prime\left(c;g_2,g_3\right)\f$, where \f$c\in\mathbb{C}\f$.
+         *
          * @see http://dlmf.nist.gov/23.6#i
          * @see https://en.wikipedia.org/wiki/Theta_function
-         * 
-         * @return \f$\wp^\prime\left(c;g_2,g_3\right)\f$, where \f$c\in\mathbb{C}\f$.
          */
         complex_type Pprime(const complex_type &c) const
         {
@@ -1035,18 +1043,20 @@ class we
         /// Weierstrass \f$\zeta\f$ function (real argument).
         /**
          * The implementation is based on Jacobi theta functions:
-         * 
+         *
          * \f[
          * \zeta\left(u\right)=\frac{\eta_1}{\omega_1}u+\frac{\pi}{2\omega_1}\frac{d}{dz}\ln\theta_1\left(z,q\right),
          * \f]
-         * 
+         *
          * where \f$z=\frac{\pi u}{2\omega_1}\f$, \f$q\f$ is the nome (see we::q()), \f$\eta_1\f$ is the first eta constant (see we::etas()), and \f$\omega_1\f$ the real half-period (see we::periods()).
          * The implementation of this overload uses only real arithmetics.
-         * 
+         *
+         * @param[in] x the real argument.
+         *
+         * @return \f$\zeta\left(x;g_2,g_3\right)\f$, where \f$x\in\mathbb{R}\f$.
+         *
          * @see http://dlmf.nist.gov/23.6#i
          * @see https://en.wikipedia.org/wiki/Theta_function
-         * 
-         * @return \f$\zeta\left(x;g_2,g_3\right)\f$, where \f$x\in\mathbb{R}\f$.
          */
         real_type zeta(const real_type &x) const
         {
@@ -1055,18 +1065,20 @@ class we
         /// Weierstrass \f$\zeta\f$ function (complex argument).
         /**
          * The implementation is based on Jacobi theta functions:
-         * 
+         *
          * \f[
          * \zeta\left(u\right)=\frac{\eta_1}{\omega_1}u+\frac{\pi}{2\omega_1}\frac{d}{dz}\ln\theta_1\left(z,q\right),
          * \f]
-         * 
+         *
          * where \f$z=\frac{\pi u}{2\omega_1}\f$, \f$q\f$ is the nome (see we::q()), \f$\eta_1\f$ is the first eta constant (see we::etas()), and \f$\omega_1\f$ the real half-period (see we::periods()).
          * The implementation of this overload uses complex arithmetics.
-         * 
+         *
+         * @param[in] c the complex argument.
+         *
+         * @return \f$\zeta\left(c;g_2,g_3\right)\f$, where \f$c\in\mathbb{C}\f$.
+         *
          * @see http://dlmf.nist.gov/23.6#i
          * @see https://en.wikipedia.org/wiki/Theta_function
-         * 
-         * @return \f$\zeta\left(c;g_2,g_3\right)\f$, where \f$c\in\mathbb{C}\f$.
          */
         complex_type zeta(const complex_type &c) const
         {
@@ -1080,18 +1092,20 @@ class we
         /// Weierstrass \f$\sigma\f$ function (real argument).
         /**
          * The implementation is based on Jacobi theta functions:
-         * 
+         *
          * \f[
          * \sigma\left(z\right)=2\omega_1\exp{\left(\frac{\eta_1z^2}{2\omega_1}\right)}\frac{\theta_1\left(\frac{\pi z}{2\omega_1},q\right)}{\pi\theta_1^\prime\left(0,q\right)},
          * \f]
-         * 
+         *
          * where \f$q\f$ is the nome (see we::q()), \f$\eta_1\f$ is the first eta constant (see we::etas()), and \f$\omega_1\f$ the real half-period (see we::periods()).
          * The implementation of this overload uses only real arithmetics.
-         * 
+         *
+         * @param[in] x the real argument.
+         *
+         * @return \f$\sigma\left(x;g_2,g_3\right)\f$, where \f$x\in\mathbb{R}\f$.
+         *
          * @see http://dlmf.nist.gov/23.6#i
          * @see https://en.wikipedia.org/wiki/Theta_function
-         * 
-         * @return \f$\sigma\left(x;g_2,g_3\right)\f$, where \f$x\in\mathbb{R}\f$.
          */
         real_type sigma(const real_type &x) const
         {
@@ -1100,18 +1114,20 @@ class we
         /// Weierstrass \f$\sigma\f$ function (complex argument).
         /**
          * The implementation is based on Jacobi theta functions:
-         * 
+         *
          * \f[
          * \sigma\left(z\right)=2\omega_1\exp{\left(\frac{\eta_1z^2}{2\omega_1}\right)}\frac{\theta_1\left(\frac{\pi z}{2\omega_1},q\right)}{\pi\theta_1^\prime\left(0,q\right)},
          * \f]
-         * 
+         *
          * where \f$q\f$ is the nome (see we::q()), \f$\eta_1\f$ is the first eta constant (see we::etas()), and \f$\omega_1\f$ the real half-period (see we::periods()).
          * The implementation of this overload uses complex arithmetics.
-         * 
+         *
+         * @param[in] c the complex argument.
+         *
+         * @return \f$\sigma\left(c;g_2,g_3\right)\f$, where \f$c\in\mathbb{C}\f$.
+         *
          * @see http://dlmf.nist.gov/23.6#i
          * @see https://en.wikipedia.org/wiki/Theta_function
-         * 
-         * @return \f$\sigma\left(c;g_2,g_3\right)\f$, where \f$c\in\mathbb{C}\f$.
          */
         complex_type sigma(const complex_type &c) const
         {
@@ -1120,14 +1136,18 @@ class we
         /// Real part of the logarithm of the sigma function.
         /**
          * This method returns:
-         * 
+         *
          * \f[
          * \Re{\left[\ln\sigma\left(z\right)\right]},
          * \f]
-         * 
+         *
          * where \f$\sigma\f$ is the Weierstrass sigma function (see we::sigma()). If the imaginary part of \f$z\f$ is in the range
          * \f$\left[0,\Im\left(\omega_3\right)\right]\f$, where \f$\omega_3\f$ is the complex half-period (see we::periods()), the output
          * of this function is guaranteed to be continuous when crossing the branch cut of the complex logarithm.
+         *
+         * @param[in] c the complex argument.
+         *
+         * @return \f$\Re{\left[\ln\sigma\left(c;g_2,g_3\right)\right]}\f$.
          */
         real_type ln_sigma_real(const complex_type &c) const
         {
@@ -1136,6 +1156,22 @@ class we
             }
             return std::log(sigma(c)).real();
         }
+        /// Imaginary part of the logarithm of the sigma function.
+        /**
+         * This method returns:
+         *
+         * \f[
+         * \Im{\left[\ln\sigma\left(z\right)\right]},
+         * \f]
+         *
+         * where \f$\sigma\f$ is the Weierstrass sigma function (see we::sigma()). If the imaginary part of \f$z\f$ is in the range
+         * \f$\left[0,\Im\left(\omega_3\right)\right]\f$, where \f$\omega_3\f$ is the complex half-period (see we::periods()), the output
+         * of this function is guaranteed to be continuous when crossing the branch cut of the complex logarithm.
+         *
+         * @param[in] c the complex argument.
+         *
+         * @return \f$\Im{\left[\ln\sigma\left(c;g_2,g_3\right)\right]}\f$.
+         */
         real_type ln_sigma_imag(const complex_type &c) const
         {
             if (c.imag() >= real_type(0) && c.imag() <= m_periods[1].imag()/real_type(2)) {
@@ -1143,9 +1179,48 @@ class we
             }
             return std::log(sigma(c)).imag();
         }
-        // Inversion of DLMF 23.6.21.
+        /// Inverse \f$\wp\f$ function.
+        /**
+         * This method will return an array containing the two values \f$z_j\f$ within the fundamental parallelogram that satisfy
+         *
+         * \f[
+         * \wp\left(z_j\right) = c.
+         * \f]
+         *
+         * The implementation is based on the following relation between \f$\wp\f$ and the Jacobi elliptic function \f$\mathrm{cs}\f$:
+         *
+         * \f[
+         * \wp\left(z\right)-e_1=\frac{K^2}{\omega_1^2}\mathrm{cs}^2\left(\frac{Kz}{\omega_1},k\right),
+         * \f]
+         *
+         * where
+         *
+         * \f[
+         * k^2 = \frac{e_2-e_3}{e_1-e_3},
+         * \f]
+         *
+         * \f[
+         * K = \omega_1^2\left(e_1-e_3\right),
+         * \f]
+         *
+         * the \f$e_j\f$ are the roots of the Weierstrass cubic (see we::roots()) and \f$\omega_1\f$ is the real half-period (see we::periods()).
+         * The relation in terms of \f$\mathrm{cs}\f$ is inverted to yield an expression of \f$\wp^{-1}\f$ in terms of an elliptic integral
+         * computed via a Landen transformation.
+         *
+         * The following guarantees are provided for the returned values:
+         *
+         * - they are always contained within the fundamental parallelogram defined by the periods (see we::periods()),
+         * - if the input value \p c is purely real and greater than \f$e_1\f$, then the two results will be purely real
+         *   and sorted in ascending order,
+         * - otherwise, the two results are sorted according to their imaginary part.
+         *
+         * @param[in] c the complex argument.
+         *
+         * @return an array of two values \f$z_j\f$ such that \f$\wp\left(z_j\right) = c\f$.
+         */
         std::array<complex_type,2> Pinv(const complex_type &c) const
         {
+            // Inversion of DLMF 23.6.21.
             complex_type e1, e2, e3;
             e1 = m_roots[0];
             e2 = m_roots[1];
