@@ -1,0 +1,3 @@
+[submodule "tests/benchpress"]
+	path = tests/benchpress
+	url = git@github.com:bigdatadev/benchpress.git
