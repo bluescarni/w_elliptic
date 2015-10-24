@@ -31,6 +31,20 @@ using namespace w_elliptic;
 
 static std::mt19937 rng;
 
+BENCHMARK("construction", [](benchpress::context* ctx) {
+    ctx->stop_timer();
+    std::uniform_real_distribution<double> g2dist(-10.,20.);
+    std::uniform_real_distribution<double> g3dist(-10.,10.);
+    for (size_t i = 0; i < ctx->num_iterations(); ++i) {
+        const double g2 = g2dist(rng);
+        const double g3 = g2dist(rng);
+        ctx->start_timer();
+        we<double> w(g2,g3);
+        benchpress::escape(&w);
+        ctx->stop_timer();
+    }
+})
+
 BENCHMARK("real sin double", [](benchpress::context* ctx) {
     ctx->stop_timer();
     std::uniform_real_distribution<double> xdist(-10.,10.);
@@ -104,5 +118,6 @@ BENCHMARK("complex sin double", [](benchpress::context* ctx) {
 
 W_ELLIPTIC_BENCHMARK_COMPLEX(P,double)
 W_ELLIPTIC_BENCHMARK_COMPLEX(Pprime,double)
+W_ELLIPTIC_BENCHMARK_COMPLEX(Pinv,double)
 W_ELLIPTIC_BENCHMARK_COMPLEX(zeta,double)
 W_ELLIPTIC_BENCHMARK_COMPLEX(sigma,double)
