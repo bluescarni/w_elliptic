@@ -1133,7 +1133,21 @@ class we
          */
         complex_type sigma(const complex_type &c) const
         {
-            return sigma_impl(c);
+            // Reduction to the fundamental cell.
+            auto ab = reduce_to_fc(c);
+            real_type N = std::floor(std::get<0>(ab)), M = std::floor(std::get<1>(ab));
+            real_type alpha = std::get<0>(ab) - N, beta = std::get<1>(ab) - M;
+            complex_type cred(m_periods[0].real() * alpha + m_periods[1] * beta);
+            // Now we need to compute (-1)**(M+N+M*N). If both M and N are even, then
+            // the result is +1, otherwise the result is -1.
+            const bool N_even = std::fmod(N,real_type(2)) == real_type(0), M_even = std::fmod(M,real_type(2)) == real_type(0);
+            auto retval = sigma_impl(cred) * std::exp((cred+N*m_periods[0].real()/real_type(2)+M*m_periods[1]/real_type(2)) *
+                (real_type(2)*N*m_etas[0].real()+real_type(2)*M*m_etas[1])
+            );
+            if (!N_even || !M_even) {
+                retval = -retval;
+            }
+            return retval;
         }
         /// Real part of the logarithm of the sigma function.
         /**
