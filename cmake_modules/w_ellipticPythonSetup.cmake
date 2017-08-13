@@ -52,13 +52,19 @@ IF(UNIX)
 	# Let's use CMAKE_INSTALL_PREFIX, so that if we specify a different install path it will be respected.
 	SET(PYTHON_MODULES_PATH lib/python${PYTHON_LIBRARY_VERSION_DOT}/${PY_PACKAGES_DIR})
 ELSE(UNIX)
-	STRING(REGEX MATCH python[0-9]* PYTHON_LIBRARY_VERSION ${PYTHON_LIBRARY})
-	STRING(REGEX REPLACE python "" PYTHON_LIBRARY_VERSION ${PYTHON_LIBRARY_VERSION})
-	SET(PYTHON_MODULES_PATH .)
+	# On Windows, we will install directly into the install path of the Python interpreter.
+	execute_process(COMMAND ${PYTHON_EXECUTABLE} -c "from distutils.sysconfig import get_python_lib; print(get_python_lib())"
+		OUTPUT_VARIABLE _PYTHON_MODULES_PATH OUTPUT_STRIP_TRAILING_WHITESPACE)
+	set(PYTHON_MODULES_PATH "${_PYTHON_MODULES_PATH}" CACHE PATH "Install path for Python modules.")
+		mark_as_advanced(PYTHON_MODULES_PATH)
 	IF(WIN32)
+		message(STATUS "Windows platform detected.")
+		message(STATUS "Output extension for compiled modules will be '.pyd'.")
 		# .pyd extension is default on Windows with supported Python versions.
 		SET(PYDEXTENSION TRUE)
 		MESSAGE(STATUS "Windows platform detected. Output extension for compiled modules will be '.pyd'.")
+		STRING(REGEX MATCH python[0-9]* PYTHON_LIBRARY_VERSION ${PYTHON_LIBRARY})
+		STRING(REGEX REPLACE python "" PYTHON_LIBRARY_VERSION ${PYTHON_LIBRARY_VERSION})
 	ENDIF(WIN32)
 ENDIF(UNIX)
 
