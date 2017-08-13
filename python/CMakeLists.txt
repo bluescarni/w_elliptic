@@ -5,9 +5,16 @@ include(w_ellipticPythonSetup)
 include_directories(${PYTHON_INCLUDE_PATH})
 
 # Boost Python library setup.
-find_package(Boost 1.48.0 REQUIRED COMPONENTS "python")
+if(${PYTHON_VERSION_MAJOR} EQUAL 2)
+    find_package(Boost 1.48.0 REQUIRED COMPONENTS "python")
+    set(MANDATORY_LIBRARIES ${Boost_PYTHON_LIBRARY})
+else()
+    find_package(Boost 1.48.0 REQUIRED COMPONENTS "python3")
+    set(MANDATORY_LIBRARIES ${Boost_PYTHON3_LIBRARY})
+endif()
 include_directories(${Boost_INCLUDE_DIRS})
-set(MANDATORY_LIBRARIES ${Boost_PYTHON_LIBRARY})
+
+add_definitions(-DBOOST_ALL_NO_LIB)
 
 # Install path.
 set(W_ELLIPTIC_INSTALL_PATH "${PYTHON_MODULES_PATH}/w_elliptic")
