@@ -41,10 +41,10 @@ endif()
 # http://www.python.org/dev/peps/pep-3123/
 # When using GCC or Clang, we add -fno-strict-aliasing here and when compiling core.cpp to prevent possible problems.
 # Other compilers should probably use similar flags.
-if(${PYTHON_LIBRARY_VERSION} LESS 30 AND (CMAKE_COMPILER_IS_GNUCXX OR CMAKE_COMPILER_IS_CLANGXX))
-    message(STATUS "Python < 3 version detected: the Python bindings will be compiled with the '-fno-strict-aliasing' flag.")
-    set_target_properties(_core PROPERTIES COMPILE_FLAGS "-fno-strict-aliasing" LINK_FLAGS "-fno-strict-aliasing")
-endif()
+#if(${PYTHON_LIBRARY_VERSION} LESS 30 AND (CMAKE_COMPILER_IS_GNUCXX OR CMAKE_COMPILER_IS_CLANGXX))
+#    message(STATUS "Python < 3 version detected: the Python bindings will be compiled with the '-fno-strict-aliasing' flag.")
+#    set_target_properties(_core PROPERTIES COMPILE_FLAGS "-fno-strict-aliasing" LINK_FLAGS "-fno-strict-aliasing")
+#endif()
 
 # Link & install.
 target_link_libraries(_core ${MANDATORY_LIBRARIES} ${PYTHON_LIBRARIES})
